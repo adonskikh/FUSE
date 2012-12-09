@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc test.c -o test -lfuse -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26 
