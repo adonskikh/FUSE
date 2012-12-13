@@ -3,9 +3,45 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include "inode.h"
 
 static const char *hello_str = "Hello World!\n";
 static const char *hello_path = "/hello";
+
+static const char *fsfilename = "myfs_bin_file";
+
+#define BLOCK_SIZE 4096;
+#define MAX_FILES_COUNT 100;
+#define INODES_AREA_SIZE MAX_FILES_COUNT * sizeof(struct dinode);
+#define FREE_INODES_AREA_SIZE MAX_FILES_COUNT * sizeof(long);
+
+void WriteToFile()
+{
+    struct dinode node;
+    FILE *output;
+    int i;
+    int count = 5, range = 10;
+    /*printf("count = ");
+    scanf("%d", &count);
+    printf("range = ");
+    scanf("%d", &range);*/
+    if((output=fopen(fsfilename,"wb"))==0)
+    {
+        puts ("Can't open output file.");
+        exit(-1);
+    }
+
+    for (i=0; i<count; i++)
+    {
+        int n = rand()%range;
+        fwrite(&n, sizeof(int), 1, output);
+        //fprintf(output, "%d\n", (int)rand()%range);
+    }
+    fclose(output);
+
+}
 /* Далее мы определим действия функций,
 которые требуются для FUSE  при описании файловой системы*/
 
@@ -93,6 +129,7 @@ static struct fuse_operations my_operations;  /* в этой структуре 
 
 int main(int argc, char *argv[])
 {
+    WriteToFile();
     // начало заполнения полей структуры
     my_operations.getattr = my_getattr;
     my_operations.readdir = my_readdir;
