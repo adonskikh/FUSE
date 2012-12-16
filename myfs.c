@@ -57,8 +57,10 @@ static int my_getattr(const char *path, struct stat *stbuf)
     WriteToLog(path);
     memset(stbuf, 0, sizeof(struct stat));
 
-    long index = 0;//TODO: получить inode по пути
+    long index = GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
+    if(n.di_size < 0)
+        return -ENOENT;
     char message[50];
     sprintf(message, "Inode size: %ld", n.di_size);
     WriteToLog(message);
@@ -107,13 +109,15 @@ static int my_getattr(const char *path, struct stat *stbuf)
 порядок чтения данных из директория*/
 static int my_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
 {
-    long index = 0;//TODO: получить inode по пути
+    long index = GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
+    if(n.di_size < 0)
+        return -ENOENT;
 
     if(n.di_mode | S_IFDIR)
     {
-        struct dirent *items = malloc(n.di_size);
-        ReadFile(&n, (void **)&items);
+        struct dirent items[n.di_size/sizeof(struct dirent)];
+        ReadFile(&n, items, 0, n.di_size);
         long i;
         for(i = 0; i < n.di_size/sizeof(struct dirent); i++)
         {

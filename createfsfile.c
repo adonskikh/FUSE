@@ -1,7 +1,6 @@
 #include "fsfileops.h"
 #include <string.h>
 //#include <dirent.h>
-#include <fcntl.h>
 
 long Create()
 {
@@ -101,13 +100,13 @@ long CreateRoot()
     n.di_nlink = 2;
     n.di_uid = 0;      /* owner's user id         */
     n.di_gid = 0;      /* owner's group id        */
-    //n.di_size = 2 * sizeof(struct dirent);     /* number of bytes in file */
+    n.di_size = 0;     /* number of bytes in file */
     /*n.di_addr*/; /* disk block addresses    */
     n.di_gen = 0;      /* file generation number  */
     n.di_atime = time(NULL);    /* time last accessed      */
     n.di_mtime = time(NULL);    /* time last modified      */
     n.di_ctime = time(NULL);    /* time created            */
-    struct dirent items[10];
+    struct dirent items[2];
     long i;
     for(i = 0; i<sizeof(n.di_addr)/sizeof(long); i++)
     {
@@ -119,7 +118,7 @@ long CreateRoot()
     strcpy(items[1].d_name,"."); //this
     items[1].d_ino=index;
 
-    for(i = 0; i<10; i++)
+    for(i = 0; i<2; i++)
     {
         if(i > 1)
         {
@@ -130,7 +129,7 @@ long CreateRoot()
         items[i].d_reclen = sizeof(items);    /* length of this record */
         items[i].d_type = -i;      /* type of file; not supported by all file system types */
     }
-    if(WriteFile(&n, items, sizeof(items)) < 0)
+    if(WriteFile(&n, items, 0, sizeof(items)) < 0)
     {
         char message[50];
         sprintf(message, "Failed to create root");
@@ -162,7 +161,7 @@ long CreateDemoFile()
     n.di_nlink = 2;
     n.di_uid = 0;      /* owner's user id         */
     n.di_gid = 0;      /* owner's group id        */
-    //n.di_size = 2 * sizeof(struct dirent);     /* number of bytes in file */
+    n.di_size = 0;     /* number of bytes in file */
     /*n.di_addr*/; /* disk block addresses    */
     n.di_gen = 0;      /* file generation number  */
     n.di_atime = time(NULL);    /* time last accessed      */
@@ -182,14 +181,14 @@ long CreateDemoFile()
         items[i].d_type = -i;      /* type of file; not supported by all file system types */
         sprintf(items[i].d_name, "inode's %ld file number %ld", index, i); /* filename */
     }
-    if(WriteFile(&n, items, sizeof(items)) < 0)
+    if(WriteFile(&n, items, 0*sizeof(struct dirent), sizeof(items)) < 0)
     {
         char message[50];
         sprintf(message, "Failed to create demo file");
         WriteToLog(message);
         return;
     }
-    printf("n.file = %ld\n", n.di_addr[12]);
+    printf("n.file = %ld\n", n.di_addr[0]);
     printf("index = %ld\n", index);
     if(WriteInode(index, n) < 0)
     {
@@ -207,6 +206,14 @@ int main(int argc, char *argv[])
     Create();
     Load("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
     CreateRoot();
+    CreateDirectory("/", "test");
+    CreateDirectory("/test", "test1");
+    CreateDirectory("/test/test1", "test2");
+    CreateDirectory("/", "test3");
+    CreateDirectory("/", "test4");
+    CreateDirectory("/", "test5");
+    CreateDirectory("/", "test6");
+
     Load("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
     PrintAll();
 
@@ -302,28 +309,48 @@ int main(int argc, char *argv[])
     printf("\n\n");
     Load();
     PrintAll();*/
-    long k;
+
+    int count = 3;
+    struct dirent *items; items = malloc((count) * sizeof(struct dirent));
+    //(*items) = malloc(10 * sizeof(struct dirent));
+    long i;
+    struct dinode n = ReadInode(0);
+    printf("n.size = %ld\n", n.di_size);
+    printf("n.file = %ld\n", n.di_addr[0]);
+    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), 3*sizeof(struct dirent));
+    for(i = 0; i<count; i++)
+    {
+        printf("inode = %ld, name = %s\n", (items)[i].d_ino, (items)[i].d_name);
+    }
+    free(items);
+
+
+    /*long k;
     for(k=1;k<10;k++)
     {
         printf("createfile status = %ld\n", CreateDemoFile());
     }
     for(k=0;k<10;k++)
     {
-        struct dirent *items;
+        int count = 10;
+        struct dirent *items; items = malloc((count+1) * sizeof(struct dirent));
         //(*items) = malloc(10 * sizeof(struct dirent));
         long i;
         struct dinode n = ReadInode(k);
         printf("n.size = %ld\n", n.di_size);
-        printf("n.file = %ld\n", n.di_addr[12]);
-        ReadFile(&n, (void **)&items);
-        printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-        for(i = 0; i<n.di_size/sizeof(struct dirent); i++)
+        printf("n.file = %ld\n", n.di_addr[0]);
+        ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count) * sizeof(struct dirent));
+        WriteFile(&n, (void *)items, 1*sizeof(struct dirent), (count) * sizeof(struct dirent));
+        printf("n.size = %ld\n", n.di_size);
+        ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count+1) * sizeof(struct dirent));
+        for(i = 0; i<count+1; i++)
         {
             printf("inode = %ld, name = %s\n", (items)[i].d_ino, (items)[i].d_name);
         }
         free(items);
-    }
+    }*/
 
+    GetInodeIndexByPath("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
     //Create();
     Load("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
     PrintAll();
