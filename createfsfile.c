@@ -62,15 +62,16 @@ long Create()
     return 0;
 }
 
-void PrintAll()
+void PrintFileSystemInfo()
 {
-    printf("Print all:\n");
+    printf("========================\n");
+    printf("File system info:\n");
     printf("free_inodes_count = %ld\n", free_inodes_count);
     printf("max_inodes_count = %ld\n", max_inodes_count);
     printf("free_blocks_count = %ld\n", free_blocks_count);
     printf("max_blocks_count = %ld\n", max_blocks_count);
     printf("block_size = %ld\n", block_size);
-    printf("\n\n");
+    printf("========================\n");
 }
 /*void WriteToLog(char *str)
 {
@@ -120,13 +121,13 @@ long CreateRoot()
 
     for(i = 0; i<2; i++)
     {
-        if(i > 1)
-        {
-            sprintf(items[i].d_name, "inode's %ld file number %ld", index, i); /* filename */
-            items[i].d_ino = i+1; /* inode number */
-        }
-        items[i].d_off = sizeof(struct dirent);       /* offset to the next dirent */
-        items[i].d_reclen = sizeof(items);    /* length of this record */
+//        if(i > 1)
+//        {
+//            sprintf(items[i].d_name, "inode's %ld file number %ld", index, i); /* filename */
+//            items[i].d_ino = i+1; /* inode number */
+//        }
+        items[i].d_off = n.di_size + i * sizeof(struct dirent);       /* offset to this dirent */
+        items[i].d_reclen = sizeof(struct dirent);    /* length of this record */
         items[i].d_type = -i;      /* type of file; not supported by all file system types */
     }
     if(WriteFile(&n, items, 0, sizeof(items)) < 0)
@@ -143,79 +144,87 @@ long CreateRoot()
         WriteToLog(message);
         return -1;
     }
+    printf("Root was created\n");
 }
 
-long CreateDemoFile()
-{
-    long index = GetNewInodeIndex();
-    //printf("index = %ld\n", index);
-    if(index < 0)
-    {
-        char message[50];
-        sprintf(message, "Failed to create demo file");
-        WriteToLog(message);
-        return -1;
-    }
-    struct dinode n;
-    n.di_mode = S_IFDIR | 0777;
-    n.di_nlink = 2;
-    n.di_uid = 0;      /* owner's user id         */
-    n.di_gid = 0;      /* owner's group id        */
-    n.di_size = 0;     /* number of bytes in file */
-    /*n.di_addr*/; /* disk block addresses    */
-    n.di_gen = 0;      /* file generation number  */
-    n.di_atime = time(NULL);    /* time last accessed      */
-    n.di_mtime = time(NULL);    /* time last modified      */
-    n.di_ctime = time(NULL);    /* time created            */
-    struct dirent items[10];
-    long i;
-    for(i = 0; i<sizeof(n.di_addr)/sizeof(long); i++)
-    {
-        n.di_addr[i] = -1;
-    }
-    for(i = 0; i<10; i++)
-    {
-        items[i].d_ino = i+1;       /* inode number */
-        items[i].d_off = sizeof(struct dirent);       /* offset to the next dirent */
-        items[i].d_reclen = sizeof(items);    /* length of this record */
-        items[i].d_type = -i;      /* type of file; not supported by all file system types */
-        sprintf(items[i].d_name, "inode's %ld file number %ld", index, i); /* filename */
-    }
-    if(WriteFile(&n, items, 0*sizeof(struct dirent), sizeof(items)) < 0)
-    {
-        char message[50];
-        sprintf(message, "Failed to create demo file");
-        WriteToLog(message);
-        return;
-    }
-    printf("n.file = %ld\n", n.di_addr[0]);
-    printf("index = %ld\n", index);
-    if(WriteInode(index, n) < 0)
-    {
-        char message[50];
-        sprintf(message, "Failed to create demo file");
-        WriteToLog(message);
-        return -1;
-    }
-}
+//long CreateDemoFile()
+//{
+//    long index = GetNewInodeIndex();
+//    //printf("index = %ld\n", index);
+//    if(index < 0)
+//    {
+//        char message[50];
+//        sprintf(message, "Failed to create demo file");
+//        WriteToLog(message);
+//        return -1;
+//    }
+//    struct dinode n;
+//    n.di_mode = S_IFDIR | 0777;
+//    n.di_nlink = 2;
+//    n.di_uid = 0;      /* owner's user id         */
+//    n.di_gid = 0;      /* owner's group id        */
+//    n.di_size = 0;     /* number of bytes in file */
+//    /*n.di_addr*/; /* disk block addresses    */
+//    n.di_gen = 0;      /* file generation number  */
+//    n.di_atime = time(NULL);    /* time last accessed      */
+//    n.di_mtime = time(NULL);    /* time last modified      */
+//    n.di_ctime = time(NULL);    /* time created            */
+//    struct dirent items[10];
+//    long i;
+//    for(i = 0; i<sizeof(n.di_addr)/sizeof(long); i++)
+//    {
+//        n.di_addr[i] = -1;
+//    }
+//    for(i = 0; i<10; i++)
+//    {
+//        items[i].d_ino = i+1;       /* inode number */
+//        items[i].d_off = sizeof(struct dirent);       /* offset to the next dirent */
+//        items[i].d_reclen = sizeof(items);    /* length of this record */
+//        items[i].d_type = -i;      /* type of file; not supported by all file system types */
+//        sprintf(items[i].d_name, "inode's %ld file number %ld", index, i); /* filename */
+//    }
+//    if(WriteFile(&n, items, 0*sizeof(struct dirent), sizeof(items)) < 0)
+//    {
+//        char message[50];
+//        sprintf(message, "Failed to create demo file");
+//        WriteToLog(message);
+//        return;
+//    }
+//    printf("n.file = %ld\n", n.di_addr[0]);
+//    printf("index = %ld\n", index);
+//    if(WriteInode(index, n) < 0)
+//    {
+//        char message[50];
+//        sprintf(message, "Failed to create demo file");
+//        WriteToLog(message);
+//        return -1;
+//    }
+//}
 
 
 int main(int argc, char *argv[])
 {
-    fsfilename = "/media/Study/Z/3 курс/Операционные системы/FUSE/file";
+    fsfilename = FILE_PATH;
     Create();
-    Load("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
+    Load(fsfilename);
     CreateRoot();
-    CreateDirectory("/", "test");
-    CreateDirectory("/test", "test1");
-    CreateDirectory("/test/test1", "test2");
-    CreateDirectory("/", "test3");
-    CreateDirectory("/", "test4");
-    CreateDirectory("/", "test5");
-    CreateDirectory("/", "test6");
+    CreateDirectory("/test", S_IFDIR | 0777);
+    CreateDirectory("/test/test1", S_IFDIR | 0777);
+    CreateDirectory("/test/test1/test2", S_IFDIR | 0777);
+    CreateDirectory("/test3", S_IFDIR | 0777);
+    CreateDirectory("/test4", S_IFDIR | 0777);
+    CreateDirectory("/test5", S_IFDIR | 0777);
+    long k;
+    for(k = 6; k < 10; k++)
+    {
+        char path[50];
+        sprintf(path, "/test%ld", k);
+        CreateDirectory(path, S_IFDIR | 0777);
+    }
+    //CreateDirectory("/Безымянная папка", S_IFDIR | 0777);
 
-    Load("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
-    PrintAll();
+    Load(fsfilename);
+    PrintFileSystemInfo();
 
     /*printf("new inode index = %ld\n", GetNewInodeIndex());
     printf("new inode index = %ld\n", GetNewInodeIndex());
@@ -310,14 +319,15 @@ int main(int argc, char *argv[])
     Load();
     PrintAll();*/
 
-    int count = 3;
-    struct dirent *items; items = malloc((count) * sizeof(struct dirent));
     //(*items) = malloc(10 * sizeof(struct dirent));
     long i;
     struct dinode n = ReadInode(0);
+    int count = n.di_size / sizeof(struct dirent);
+    struct dirent *items;
+    items = malloc((count) * sizeof(struct dirent));
     printf("n.size = %ld\n", n.di_size);
-    printf("n.file = %ld\n", n.di_addr[0]);
-    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), 3*sizeof(struct dirent));
+
+    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), count*sizeof(struct dirent));
     for(i = 0; i<count; i++)
     {
         printf("inode = %ld, name = %s\n", (items)[i].d_ino, (items)[i].d_name);
@@ -350,8 +360,7 @@ int main(int argc, char *argv[])
         free(items);
     }*/
 
-    GetInodeIndexByPath("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
     //Create();
-    Load("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
-    PrintAll();
+    Load(fsfilename);
+    PrintFileSystemInfo();
 }

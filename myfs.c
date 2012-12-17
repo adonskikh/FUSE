@@ -145,6 +145,20 @@ static int my_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
     return 0;
 }
 
+int my_mkdir(const char *path, mode_t mode)
+{
+    int retstat = 0;
+    WriteToLog("mkdir: ");
+    WriteToLog(path);
+
+    if(CreateDirectory(path, /*S_IFDIR | 0777*/mode | S_IFDIR /* | 0777*/) < 0)
+    {
+        return -ENOENT;
+    }
+
+    return 0;
+}
+
 /* указатель на эту функцию будет передан модулю ядра FUSE в качестве
 поля open структуры типа   fuse_operations  - эта функция определяет
 имеет ли право пользователь открыть файл /hello нашей файловой системы -
@@ -188,13 +202,14 @@ static struct fuse_operations my_operations;  /* в этой структуре 
 int main(int argc, char *argv[])
 {
     //Create();
-    Load("/media/Study/Z/3 курс/Операционные системы/FUSE/file");
+    Load(FILE_PATH);
     //WriteToFile();
     // начало заполнения полей структуры
     my_operations.getattr = my_getattr;
     my_operations.readdir = my_readdir;
     my_operations.open = my_open;
     my_operations.read = my_read;
+    my_operations.mkdir = my_mkdir;
     // окончание заполнения полей структуры
     return fuse_main(argc, argv, &my_operations, 0); // передаём структуру с инф. об операциях модулю FUSE
 }

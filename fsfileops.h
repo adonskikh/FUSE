@@ -6,11 +6,15 @@
 #include "inode.h"
 
 
-#define MAX_INODES_COUNT 10;
-#define FREE_INODES_COUNT 10;
-#define MAX_BLOCKS_COUNT 1000;
-#define FREE_BLOCKS_COUNT 1000;
-#define BLOCK_SIZE 1024;
+#define MAX_INODES_COUNT 100
+#define FREE_INODES_COUNT 100
+#define MAX_BLOCKS_COUNT 10000
+#define FREE_BLOCKS_COUNT 10000
+#define BLOCK_SIZE 1024
+/*#define LOG_PATH "/home/totzhe/ОС/FUSE/log"
+#define FILE_PATH "/home/totzhe/ОС/FUSE/file"*/
+#define LOG_PATH "/media/Study/Z/3 курс/Операционные системы/FUSE/log"
+#define FILE_PATH "/media/Study/Z/3 курс/Операционные системы/FUSE/file"
 
 char *fsfilename;
 long max_inodes_count;
@@ -24,15 +28,15 @@ long param_count = 5;
 
 void WriteToLog(const char *str)
 {
-    FILE *output;
+    /*FILE *output;
 
-    if((output=fopen("/media/Study/Z/3 курс/Операционные системы/FUSE/log","a+"))==0)
+    if((output=fopen(LOG_PATH, "a+"))==0)
     {
         puts ("Can't open output file.");
         exit(-1);
     }
     fprintf(output, "%s\n", str);
-    fclose(output);
+    fclose(output);*/
 }
 
 long ReadFreeInodesCount()
@@ -449,9 +453,11 @@ long Load(char *filename)
 
 long WriteFile(struct dinode *inode, void *buf, long offset, long size)
 {
+    printf("SIZE = %ld\n", size);
     long bytes_wrote = 0;
-    int block_number = 0;
+    long block_number = 0;
     long pos = offset < inode->di_size ? offset : inode->di_size;
+    printf("POS = %ld\n", pos);
     long addr_in_block = block_size/sizeof(long);
 
     if(pos >= 0 && pos < 10 * block_size)
@@ -465,7 +471,7 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 if(inode->di_addr[block_number] < 0)
                     return -1;
             }
-            if(pos >= offset || (pos < offset && offset < pos + block_size))
+            if(pos >= offset || (pos <= offset && offset < pos + block_size))
             {
                 long offs = pos - block_size * block_number;
                 long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
@@ -478,7 +484,7 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
             block_number++;
         }
     }
-    if(pos >= 10 * block_size && pos < addr_in_block*block_size)
+    if(pos >= 10 * block_size && pos < 10 * block_size + addr_in_block*block_size)
     {
         if(inode->di_addr[10] < 0)
         {
@@ -487,8 +493,10 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 return -1;
         }
         long index0 = inode->di_addr[10]; //индекс блока с прямыми адресами (адресами блоков с данными)
-        long count0 = 0;
+        //pos+=count0*block_size;
         block_number = pos / block_size;
+        long count0 = block_number - 10;
+        printf("BLOCK_NUMBER = %ld\n", block_number);
 
         while(count0 < addr_in_block && bytes_wrote < size)
         {
@@ -499,6 +507,7 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 ReadBlock(index0, &index1, count0 * sizeof(long), sizeof(long));
                 if(index1 < 0)
                     return -1;
+                printf("!@@index1 = %ld, count0 * sizeof(long) = %ld\n", index1, count0 * sizeof(long));
             }
             else
             {
@@ -508,9 +517,11 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                     return -1;
                 if(WriteBlock(index0, &index1, count0 * sizeof(long), sizeof(long)) < 0)
                     return -1;
+                printf("index1 = %ld, count0 * sizeof(long) = %ld\n", index1, count0 * sizeof(long));
             }
 
-            if(pos >= offset || (pos < offset && offset < pos + block_size))
+            printf("OFFSET = %ld\n", offset);
+            if(pos >= offset || (pos <= offset && offset < pos + block_size))
             {
                 long offs = pos - block_size * block_number;
                 long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
@@ -524,7 +535,7 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
             block_number++;
         }
     }
-    if(pos >= addr_in_block*block_size && pos < addr_in_block*addr_in_block*block_size)
+    if(pos >= 10 * block_size + addr_in_block*block_size && pos < 10 * block_size + addr_in_block*block_size + addr_in_block*addr_in_block*block_size)
     {
         if(inode->di_addr[11] < 0)
         {
@@ -533,8 +544,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 return -1;
         }
         long index0 = inode->di_addr[11]; //индекс блока с одинарными непрямыми адресами (адресами блоков с прямыми адресами)
-        long count0 = 0;
+
         block_number = pos / block_size;
+        long count0 = (block_number-10-addr_in_block)/addr_in_block;
 
         while(count0 < addr_in_block && bytes_wrote < size)
         {
@@ -555,7 +567,7 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 if(WriteBlock(index0, &index1, count0 * sizeof(long), sizeof(long)) < 0)
                     return -1;
             }
-            long count1 = 0;
+            long count1 = (block_number-10-addr_in_block) - count0 * addr_in_block;
 
             printf("!index1 = %ld \n", index1);
 
@@ -579,8 +591,12 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                     if(WriteBlock(index1, &index2, count1 * sizeof(long), sizeof(long)) < 0)
                         return -1;
                 }
+                printf("BLOCK_NUMBER = %ld\n", block_number);
+                printf("OFFSET = %ld\n", offset);
+                printf("index0 = %ld\n", index0);
+                printf("index1 = %ld\n", index1);
 
-                if(pos >= offset || (pos < offset && offset < pos + block_size))
+                if(pos >= offset || (pos <= offset && offset < pos + block_size))
                 {
                     long offs = pos - block_size * block_number;
                     long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
@@ -596,7 +612,7 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
             count0++;
         }
     }
-    if(pos >= addr_in_block*addr_in_block*block_size && pos < addr_in_block*addr_in_block*addr_in_block*block_size)
+    if(pos >= 10 * block_size + addr_in_block*block_size + addr_in_block*addr_in_block*block_size && pos < 10 * block_size + addr_in_block*block_size + addr_in_block*addr_in_block*block_size + addr_in_block*addr_in_block*addr_in_block*block_size)
     {
         if(inode->di_addr[12] < 0)
         {
@@ -605,8 +621,8 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 return -1;
         }
         long index0 = inode->di_addr[12]; //индекс блока с двойными непрямыми адресами (адресами блоков с одинарными непрямыми адресами)
-        long count0 = 0;
         block_number = pos / block_size;
+        long count0 = (block_number-10-addr_in_block-addr_in_block*addr_in_block)/addr_in_block/addr_in_block;
 
         while(count0 < addr_in_block && bytes_wrote < size)
         {
@@ -627,7 +643,8 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 if(WriteBlock(index0, &index1, count0 * sizeof(long), sizeof(long)) < 0)
                     return -1;
             }
-            long count1 = 0;
+            printf("IND1 = %ld{\n", index1);
+            long count1 = (block_number-10-addr_in_block-addr_in_block*addr_in_block)/addr_in_block - count0 * addr_in_block;
 
             //printf("!index1 = %ld \n", index1);
 
@@ -650,8 +667,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                     if(WriteBlock(index1, &index2, count1 * sizeof(long), sizeof(long)) < 0)
                         return -1;
                 }
+                printf("IND2 = %ld[\n", index2);
 
-                long count2 = 0;
+                long count2 = (block_number-10-addr_in_block-addr_in_block*addr_in_block) - count0 * addr_in_block * addr_in_block - count1 * addr_in_block;
 
                 while(count2 < addr_in_block && bytes_wrote < size)
                 {
@@ -671,8 +689,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                         if(WriteBlock(index2, &index3, count2 * sizeof(long), sizeof(long)) < 0)
                             return -1;
                     }
+                    printf("IND3 = %ld(\n", index3);
 
-                    if(pos >= offset || (pos < offset && offset < pos + block_size))
+                    if(pos >= offset || (pos <= offset && offset < pos + block_size))
                     {
                         long offs = pos - block_size * block_number;
                         long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
@@ -684,25 +703,27 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                     pos = (block_number + 1) * block_size;
                     count2++;
                     block_number++;
+                    printf(")\n");
                 }
                 count1++;
+                printf("]\n");
             }
             count0++;
+            printf("}\n");
         }
     }
     inode->di_size = inode->di_size > offset + size ? inode->di_size : offset + size ;
+    printf("inode->di_size = %ld\n",inode->di_size);
     return 0;
 }
 
 long ReadFile(struct dinode *inode, void *buf, long offset, long size)
 {
     long bytes_read = 0;
-    int block_number = 0;
-    //long start_pos =
+    long block_number = 0;
     long pos = offset;
     long addr_in_block = block_size/sizeof(long);
 
-    //printf("@@@@@@@@@@@@@@@@@@@@@@\n");
     if(pos < 10 * block_size)
     {
         block_number = pos / block_size;
@@ -725,16 +746,16 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             block_number++;
         }
     }
-    if(pos >= 10 * block_size && pos < addr_in_block*block_size)
+    if(pos >= 10 * block_size && pos < 10 * block_size + addr_in_block*block_size)
     {
         if(inode->di_addr[10] < 0)
         {
             return -1;
         }
         long index0 = inode->di_addr[10]; //индекс блока с прямыми адресами (адресами блоков с данными)
-        long count0 = 0;
 
         block_number = pos / block_size;
+        long count0 = block_number - 10;
 
         while(count0 < addr_in_block && bytes_read < size)
         {
@@ -765,14 +786,14 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             count0++;
         }
     }
-    if(pos >= addr_in_block*block_size && pos < addr_in_block*addr_in_block*block_size)
+    if(pos >= 10 * block_size + addr_in_block*block_size && pos < 10 * block_size + addr_in_block*block_size + addr_in_block*addr_in_block*block_size)
     {
         if(inode->di_addr[11] < 0)
         {
             return -1;
         }
         long index0 = inode->di_addr[11]; //индекс блока с одинарными непрямыми адресами (адресами блоков с прямыми адресами)
-        long count0 = 0;
+        long count0 = (block_number-10-addr_in_block)/addr_in_block;
 
         block_number = pos / block_size;
 
@@ -790,7 +811,7 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             {
                 break;
             }
-            long count1 = 0;
+            long count1 = (block_number-10-addr_in_block) - count0 * addr_in_block;
 
             while(count1 < addr_in_block && bytes_read < size)
             {
@@ -823,14 +844,14 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             count0++;
         }
     }
-    if(pos >= addr_in_block*addr_in_block*block_size && pos < addr_in_block*addr_in_block*addr_in_block*block_size)
+    if(pos >= 10 * block_size + addr_in_block*block_size + addr_in_block*addr_in_block*block_size && pos < 10 * block_size + addr_in_block*block_size + addr_in_block*addr_in_block*block_size + addr_in_block*addr_in_block*addr_in_block*block_size)
     {
         if(inode->di_addr[12] < 0)
         {
             return -1;
         }
         long index0 = inode->di_addr[12]; //индекс блока с двойными непрямыми адресами (адресами блоков с одинарными непрямыми адресами)
-        long count0 = 0;
+        long count0 = (block_number-10-addr_in_block-addr_in_block*addr_in_block)/addr_in_block/addr_in_block;
 
         block_number = pos / block_size;
 
@@ -848,7 +869,7 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             {
                 break;
             }
-            long count1 = 0;
+            long count1 = (block_number-10-addr_in_block-addr_in_block*addr_in_block)/addr_in_block - count0 * addr_in_block;
 
             while(count1 < addr_in_block && bytes_read < size)
             {
@@ -865,7 +886,7 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
                     break;
                 }
 
-                long count2 = 0;
+                long count2 = (block_number-10-addr_in_block-addr_in_block*addr_in_block) - count0 * addr_in_block * addr_in_block - count1 * addr_in_block;
                 while(count2 < addr_in_block && bytes_read < size)
                 {
 
@@ -1113,7 +1134,7 @@ long GetInodeIndexByPath(const char *path)
     char str[l];
     strncpy(str, path, l);
     char *pch;
-    printf ("Splitting string \"%s\" into tokens:\n",str);
+    //printf ("Splitting string \"%s\" into tokens:\n",str);
     pch = strtok (str,"/");
     while (pch != NULL)
     {
@@ -1140,9 +1161,35 @@ long GetInodeIndexByPath(const char *path)
     return index;
 }
 
-long CreateDirectory(const char *parent_path, char *name)
+long CreateDirectory(const char *path, mode_t mode)
 {
+    int l = strlen(path);
+    while(path[l] != '/' && l >= 0)
+        l--;
+    if(l<0)
+        return -1;
+    //char *p = strrchr(path, '/');
+    char parent_path[l+2];
+    char name[strlen(path) - l];
+    if(l==0)
+    {
+        strncpy(parent_path, "/", 1);
+        parent_path[1]='\0';
+    }
+     else
+    {
+    strncpy(parent_path, path, l);
+    parent_path[l]='\0';//parent_path[l+1]='\0';
+    }
+    strncpy(name, path+l+1, strlen(path) - l-1);
+    name[strlen(path) - l-1]='\0';
+    WriteToLog("NAME1NAME1NAME1NAME1NAME1NAME1NAME1NAME1NAME1NAME1NAME1NAME1NAME1NAME1");
+    WriteToLog(name);
+
+    printf("parent = %s, name = %s\n", parent_path, name);
+    //name = p+1;
     long parent_index = GetInodeIndexByPath(parent_path);
+    printf("parent_index = %ld\n", parent_index);
     struct dinode parent = ReadInode(parent_index);
     if(parent.di_size < 0)
         return -1;
@@ -1151,7 +1198,7 @@ long CreateDirectory(const char *parent_path, char *name)
         return -1;
     struct dinode n;
 
-    n.di_mode = S_IFDIR | 0777;
+    n.di_mode = mode;
     n.di_nlink = 2;
     n.di_uid = 0;      /* owner's user id         */
     n.di_gid = 0;      /* owner's group id        */
@@ -1162,6 +1209,8 @@ long CreateDirectory(const char *parent_path, char *name)
     n.di_mtime = time(NULL);    /* time last modified      */
     n.di_ctime = time(NULL);    /* time created            */
     (parent.di_nlink)++;
+    parent.di_atime = time(NULL);
+    parent.di_mtime = time(NULL);
     struct dirent items[2];
     long i;
     for(i = 0; i<sizeof(n.di_addr)/sizeof(long); i++)
@@ -1180,30 +1229,38 @@ long CreateDirectory(const char *parent_path, char *name)
         items[i].d_reclen = sizeof(items);    /* length of this record */
         items[i].d_type = -i;      /* type of file; not supported by all file system types */
     }
-    printf("1111");
     struct dirent parent_item;
     parent_item.d_ino = index;       /* inode number */
     parent_item.d_off = sizeof(parent_item);       /* offset to the next dirent */
     parent_item.d_reclen = sizeof(parent_item);    /* length of this record */
     parent_item.d_type = -1;      /* type of file; not supported by all file system types */
-    strncpy(parent_item.d_name, name, sizeof(parent_item.d_name));
+    memset(parent_item.d_name, '\0', sizeof(parent_item.d_name));
+    strcpy(parent_item.d_name, name);
+    WriteToLog("NAMENAMENAMENAMENAMENAMENAMENAMENAMENAMENAMENAMENAMENAMENAME");
+    WriteToLog(parent_item.d_name);
+    printf("WRITING TO THE NEW FILE\n");
     if(WriteFile(&n, items, 0, sizeof(items)) < 0)
     {
         return -1;
     }
+    printf("WRITING NEW INODE\n");
     if(WriteInode(index, n) < 0)
     {
         return -1;
     }
+    printf("WRITING TO PARENT\n");
     printf("parent_size = %ld\n", parent.di_size);
     if(WriteFile(&parent, (void *)&parent_item, parent.di_size, sizeof(parent_item)) < 0)
     {
         return -1;
     }
+
+    printf("WRITING PARENT INODE\n");
     printf("parent_size = %ld\n", parent.di_size);
     if(WriteInode(parent_index, parent) < 0)
     {
         return -1;
     }
+    printf("=======================================================================================\n");
     return 0;
 }
