@@ -1,7 +1,5 @@
 #include "fsfileops.h"
 #include <string.h>
-//#include <dirent.h>
-
 long Create()
 {
     FILE *file;
@@ -47,7 +45,7 @@ long Create()
         fwrite(&n, sizeof(n), 1, file);
     }
 
-    for (i=0; i<max_blocks_count; i++)
+    /*for (i=0; i<max_blocks_count; i++)
     {
         long j;
         for (j=0; j<block_size; j++)
@@ -57,7 +55,7 @@ long Create()
                 n = i % 128;
             fwrite(&n, sizeof(n), 1, file);
         }
-    }
+    }*/
     fclose(file);
     return 0;
 }
@@ -73,18 +71,7 @@ void PrintFileSystemInfo()
     printf("block_size = %ld\n", block_size);
     printf("========================\n");
 }
-/*void WriteToLog(char *str)
-{
-    FILE *output;
 
-    if((output=fopen("log","a+"))==0)
-    {
-        puts ("Can't open output file.");
-        exit(-1);
-    }
-    fprintf(output, "%s\n", str);
-    fclose(output);
-}*/
 long CreateRoot()
 {
     struct dinode n;
@@ -121,11 +108,6 @@ long CreateRoot()
 
     for(i = 0; i<2; i++)
     {
-//        if(i > 1)
-//        {
-//            sprintf(items[i].d_name, "inode's %ld file number %ld", index, i); /* filename */
-//            items[i].d_ino = i+1; /* inode number */
-//        }
         items[i].d_off = n.di_size + i * sizeof(struct dirent);       /* offset to this dirent */
         items[i].d_reclen = sizeof(struct dirent);    /* length of this record */
         items[i].d_type = -i;      /* type of file; not supported by all file system types */
@@ -147,61 +129,6 @@ long CreateRoot()
     printf("Root was created\n");
 }
 
-//long CreateDemoFile()
-//{
-//    long index = GetNewInodeIndex();
-//    //printf("index = %ld\n", index);
-//    if(index < 0)
-//    {
-//        char message[50];
-//        sprintf(message, "Failed to create demo file");
-//        WriteToLog(message);
-//        return -1;
-//    }
-//    struct dinode n;
-//    n.di_mode = S_IFDIR | 0777;
-//    n.di_nlink = 2;
-//    n.di_uid = 0;      /* owner's user id         */
-//    n.di_gid = 0;      /* owner's group id        */
-//    n.di_size = 0;     /* number of bytes in file */
-//    /*n.di_addr*/; /* disk block addresses    */
-//    n.di_gen = 0;      /* file generation number  */
-//    n.di_atime = time(NULL);    /* time last accessed      */
-//    n.di_mtime = time(NULL);    /* time last modified      */
-//    n.di_ctime = time(NULL);    /* time created            */
-//    struct dirent items[10];
-//    long i;
-//    for(i = 0; i<sizeof(n.di_addr)/sizeof(long); i++)
-//    {
-//        n.di_addr[i] = -1;
-//    }
-//    for(i = 0; i<10; i++)
-//    {
-//        items[i].d_ino = i+1;       /* inode number */
-//        items[i].d_off = sizeof(struct dirent);       /* offset to the next dirent */
-//        items[i].d_reclen = sizeof(items);    /* length of this record */
-//        items[i].d_type = -i;      /* type of file; not supported by all file system types */
-//        sprintf(items[i].d_name, "inode's %ld file number %ld", index, i); /* filename */
-//    }
-//    if(WriteFile(&n, items, 0*sizeof(struct dirent), sizeof(items)) < 0)
-//    {
-//        char message[50];
-//        sprintf(message, "Failed to create demo file");
-//        WriteToLog(message);
-//        return;
-//    }
-//    printf("n.file = %ld\n", n.di_addr[0]);
-//    printf("index = %ld\n", index);
-//    if(WriteInode(index, n) < 0)
-//    {
-//        char message[50];
-//        sprintf(message, "Failed to create demo file");
-//        WriteToLog(message);
-//        return -1;
-//    }
-//}
-
-
 int main(int argc, char *argv[])
 {
     fsfilename = FILE_PATH;
@@ -212,15 +139,19 @@ int main(int argc, char *argv[])
     CreateDirectory("/test/test1", S_IFDIR | 0777);
     CreateDirectory("/test/test1/test2", S_IFDIR | 0777);
     CreateDirectory("/test3", S_IFDIR | 0777);
-    CreateDirectory("/test4", S_IFDIR | 0777);
-    CreateDirectory("/test5", S_IFDIR | 0777);
+    CreateFile("/test/test1/test2/test.txt", S_IFREG | 0777);
+    /*CreateDirectory("/test4", S_IFDIR | 0777);
+    CreateDirectory("/test5", S_IFDIR | 0777);*/
+    /*struct dinode n = ReadInode(0);
+    struct dirent items[n.di_size/sizeof(dirent)];
+    ReadFile(n, &items, sizeof(struct dirent), n.di_size - sizeof(dirent));*/
     long k;
-    for(k = 6; k < 10; k++)
+    /*for(k = 6; k < 10; k++)
     {
         char path[50];
         sprintf(path, "/test%ld", k);
         CreateDirectory(path, S_IFDIR | 0777);
-    }
+    }*/
     //CreateDirectory("/Безымянная папка", S_IFDIR | 0777);
 
     Load(fsfilename);
@@ -231,12 +162,12 @@ int main(int argc, char *argv[])
     printf("new inode index = %ld\n", GetNewInodeIndex());
     printf("new inode index = %ld\n", GetNewInodeIndex());
     printf("new inode index = %ld\n", GetNewInodeIndex());
-    FreeInodeIndex(3);
+
     printf("new inode index = %ld\n", GetNewInodeIndex());
-    printf("new inode index = %ld\n", GetNewInodeIndex());
+    printf("new inode index = %ld\n", GetNewInodeIndex());*/
 
 
-    printf("new block address = %ld\n", GetNewBlockIndex());
+    /*printf("new block address = %ld\n", GetNewBlockIndex());
     printf("new block address = %ld\n", GetNewBlockIndex());
     printf("new block address = %ld\n", GetNewBlockIndex());
     printf("new block address = %ld\n", GetNewBlockIndex());
@@ -322,17 +253,22 @@ int main(int argc, char *argv[])
     //(*items) = malloc(10 * sizeof(struct dirent));
     long i;
     struct dinode n = ReadInode(0);
+    //TruncFile(&n, 268*0);
     int count = n.di_size / sizeof(struct dirent);
     struct dirent *items;
     items = malloc((count) * sizeof(struct dirent));
     printf("n.size = %ld\n", n.di_size);
+    printf("index = %ld\n", GetInodeIndexByPath("/qwert"));
 
-    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), count*sizeof(struct dirent));
+    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count)*sizeof(struct dirent));
     for(i = 0; i<count; i++)
     {
-        printf("inode = %ld, name = %s\n", (items)[i].d_ino, (items)[i].d_name);
+        printf("inode = %ld, name = %s, offs = %ld\n", (items)[i].d_ino, (items)[i].d_name, (items)[i].d_off);
     }
     free(items);
+
+    //RemoveByPath("/test.txt");
+    printf("RENAME STATUS = %ld\n", Rename("/test/test1/test2/test.txt", "/test/test1/test.txt"));
 
 
     /*long k;
@@ -361,6 +297,23 @@ int main(int argc, char *argv[])
     }*/
 
     //Create();
+    Load(fsfilename);
+    PrintFileSystemInfo();
+
+    n = ReadInode(0);
+    //TruncFile(&n, 268*0);
+    count = n.di_size / sizeof(struct dirent);
+    items = malloc((count) * sizeof(struct dirent));
+    printf("n.size = %ld\n", n.di_size);
+    printf("index = %ld\n", GetInodeIndexByPath("/qwert"));
+
+    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count)*sizeof(struct dirent));
+    for(i = 0; i<count; i++)
+    {
+        printf("inode = %ld, name = %s, offs = %ld\n", (items)[i].d_ino, (items)[i].d_name, (items)[i].d_off);
+    }
+    free(items);
+
     Load(fsfilename);
     PrintFileSystemInfo();
 }
