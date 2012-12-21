@@ -53,7 +53,8 @@ int main(int argc, char *argv[])
     for(i = 0; i < 100; i++)
         printf("index = %ld\n", GetInodeIndexByPath("/Безымянная папка/FUSE.htm"));*/
 
-    PrintDir("/");
     PrintFileSystemInfo();
-    Destroy();
+    PrintDir("/");
+
+    //fclose(file);
 }
