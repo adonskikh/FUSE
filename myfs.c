@@ -22,17 +22,13 @@ static int my_getattr(const char *path, struct stat *stbuf)
 
     long index = GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
-    char message[500];
+    /*char message[500];
     sprintf(message, "GETATTR: index = %ld, path = %s, mode = %o, real size = %ld", index, path, n.di_mode, n.di_size);
-    WriteToLog(message);
+    WriteToLog(message);*/
     if(n.di_size < 0)
         return -ENOENT;
 
     stbuf->st_ino = index;     /* inode number */
-    /*if(!(n.di_mode & S_IFDIR)&& !(n.di_mode & S_IFREG))
-    {
-        return -ENOENT;
-    }*/
     stbuf->st_mode = n.di_mode;    /* protection */
     stbuf->st_nlink = n.di_nlink;   /* number of hard links */
     stbuf->st_uid = n.di_uid;     /* user ID of owner */
@@ -97,6 +93,9 @@ static int my_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
     }
     else
         return -ENOENT;
+    n.di_atime = time(NULL);
+    if(WriteInode(index, n) < 0)
+        return -EIO;
 
     return 0;
 }
@@ -119,7 +118,6 @@ int my_mkdir(const char *path, mode_t mode)
 {
     //WriteToLog("mkdir: ");
     //WriteToLog(path);
-
     return(CreateDirectory(path, mode | S_IFDIR));
 }
 
@@ -132,8 +130,6 @@ static int my_open(const char *path, struct fuse_file_info *fi)
     fi->fh = GetInodeIndexByPath(path);
     if((fi->fh) < 0)
         return -ENOENT;
-    /*if((fi->flags & 3) != O_RDONLY)
-        return -EACCES;*/
 
     return 0;
 }
@@ -157,34 +153,8 @@ int my_opendir(const char *path, struct fuse_file_info *fi)
     sprintf(message, "opendir flags: %o", fi->flags);
     WriteToLog(message);*/
 
-    /*if((fi->flags & 3) != O_RDONLY)
-        return -EACCES;*/
-
     return 0;
 }
-
-/*определяет, как именно будет считываться информация из файла для передачи пользователю*/
-/*static int my_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
-{
-    //WriteToLog("read: ");
-    //WriteToLog(path);
-    size_t len;
-    (void) fi;
-    if(strcmp(path, hello_path) != 0)
-        return -ENOENT;
-
-    len = strlen(hello_str);
-    if (offset < len) {
-        if (offset + size > len)
-            size = len - offset;
-        memcpy(buf, hello_str + offset, size);
-    } else
-        size = 0;
-    /*if(!(n.di_mode & 0444))
-        return -EACCES;*/
-
-    /*return size;
-}*/
 
 /** Read data from an open file
  *
@@ -197,23 +167,21 @@ int my_opendir(const char *path, struct fuse_file_info *fi)
  *
  * Changed in version 2.2
  */
-// I don't fully understand the documentation above -- it doesn't
-// match the documentation for the read() system call which says it
-// can return with anything up to the amount of data requested. nor
-// with the fusexmp code which returns the amount of data also
-// returned by read.
 int my_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
     long index = fi->fh;//GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
-    char message[500];
+    /*char message[500];
     sprintf(message, "read: index = %ld, path = %s, size = %ld, offset = %ld, real size = %ld", index, path, size, (long)offset, n.di_size);
-    WriteToLog(message);
+    WriteToLog(message);*/
     if(n.di_size < 0)
         return -ENOENT;
     if(ReadFile(&n, buf, (long)offset, size) < 0)
         return -EIO;
-    WriteToLog("SUCCESS");
+    n.di_atime = time(NULL);
+    if(WriteInode(index, n) < 0)
+        return -EIO;
+    //WriteToLog("SUCCESS");
     return size;
 }
 
@@ -231,16 +199,16 @@ int my_write(const char *path, const char *buf, size_t size, off_t offset, struc
     struct dinode n = ReadInode(index);
     if(n.di_size < 0)
         return -ENOENT;
-    char message[500];
+    /*char message[500];
     sprintf(message, "write: index = %ld, path = %s, size = %ld, offset = %ld, real size = %ld, fi->fh = %ld", index, path, size, (long)offset, n.di_size, fi->fh);
-    WriteToLog(message);
+    WriteToLog(message);*/
     if(WriteFile(&n, (void *)buf, (long)offset, size) < 0)
     {
         return -EIO;
     }
     if(WriteInode(index, n) < 0)
         return -EIO;
-    WriteToLog("SUCCESS");
+    //WriteToLog("SUCCESS");
     return size;
 }
 
@@ -305,9 +273,9 @@ int my_truncate(const char *path, off_t newsize)
 {
     long index = GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
-    char message[500];
+    /*char message[500];
     sprintf(message, "trunc: index = %ld, path = %s, offset = %ld, real size = %ld, fi->fh = %ld", index, path, (long)newsize, n.di_size);
-    WriteToLog(message);
+    WriteToLog(message);*/
     if(n.di_size < 0)
         return -ENOENT;
     if(TruncFile(&n, (long)newsize) < 0)
@@ -319,7 +287,7 @@ int my_truncate(const char *path, off_t newsize)
     return(WriteInode(index, n));
 }
 
-static struct fuse_operations my_operations;  /* в этой структуре будут храниться ссылки на функции, которые  реализуют операции, определённые в рамках нашей файловой системы */
+static struct fuse_operations my_operations;
 
 int main(int argc, char *argv[])
 {
@@ -329,8 +297,6 @@ int main(int argc, char *argv[])
         printf("Cann't load file system.\n");
         return -1;
     }
-    //WriteToFile();
-    // начало заполнения полей структуры
     my_operations.getattr = my_getattr;
     my_operations.readdir = my_readdir;
     my_operations.open = my_open;
@@ -346,6 +312,5 @@ int main(int argc, char *argv[])
     my_operations.truncate = my_truncate;
     my_operations.read = my_read;
     my_operations.write = my_write;
-    // окончание заполнения полей структуры
-    return fuse_main(argc, argv, &my_operations, 0); // передаём структуру с инф. об операциях модулю FUSE
+    return fuse_main(argc, argv, &my_operations, 0);
 }

@@ -51,7 +51,6 @@ long ReadFreeInodesCount()
         return -1;
     }
 
-
     long result;
     fseek(file, 0, SEEK_SET);
     fread(&result, sizeof(result), 1, file);
@@ -88,7 +87,6 @@ long ReadMaxInodesCount()
         //!!!printf("Can't open input file.\n");
         return -1;
     }
-
 
     long result;
     fseek(file, sizeof(long), SEEK_SET);
@@ -127,7 +125,6 @@ long ReadFreeBlocksCount()
         return -1;
     }
 
-
     long result;
     fseek(file, 2*sizeof(long), SEEK_SET);
     fread(&result, sizeof(result), 1, file);
@@ -165,7 +162,6 @@ long ReadMaxBlocksCount()
         return -1;
     }
 
-
     long result;
     fseek(file, 3*sizeof(long), SEEK_SET);
     fread(&result, sizeof(result), 1, file);
@@ -202,7 +198,6 @@ long ReadBlockSize()
         //!!!printf("Can't open input file.\n");
         return -1;
     }
-
 
     long result;
     fseek(file, 4*sizeof(long), SEEK_SET);
@@ -245,9 +240,6 @@ long GetNewInodeIndex()
         return -1;
     }
 
-    ////!!!printf("offset = %ld\n", offset);
-    ////!!!printf("offset = %ld\n", INODES_AREA_SIZE);
-
     long result;
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + (count - 1) * sizeof(long);
     fseek(file, offset, SEEK_SET);
@@ -274,7 +266,6 @@ long FreeInodeIndex(long index)
         return -1;
     }
 
-
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + count * sizeof(long);
     fseek(file, offset, SEEK_SET);
     fwrite(&index, sizeof(index), 1, file);
@@ -299,8 +290,6 @@ long GetNewBlockIndex()
         //!!!printf("Can't open input file.\n");
         return -1;
     }
-    ////!!!printf("offset = %ld\n", offset);
-    ////!!!printf("offset = %ld\n", INODES_AREA_SIZE);
 
     long result;
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + max_inodes_count * sizeof(long) + (count - 1) * sizeof(long);
@@ -327,7 +316,6 @@ long FreeBlockIndex(long index)
         //!!!printf("Can't open input file.\n");
         return -1;
     }
-
 
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + max_inodes_count * sizeof(long) + count * sizeof(long);
     fseek(file, offset, SEEK_SET);
@@ -389,7 +377,6 @@ long WriteInode(long index, struct dinode value)
 
 long ReadBlock(long index, void *buf, long offset, long size)
 {
-    ////!!!printf("index = %ld, max_blocks_count = %ld, offset + size = %ld < block_size = %ld\n", index, max_blocks_count, offset + size, block_size);
     if(index < 0 || index >= max_blocks_count || offset + size > block_size)
         return -1;
 
@@ -399,7 +386,6 @@ long ReadBlock(long index, void *buf, long offset, long size)
         //!!!printf("Can't open input file.\n");
         return -1;
     }
-
 
     long offs = (param_count + max_blocks_count + max_inodes_count) * sizeof(long) + max_inodes_count * sizeof(struct dinode) + index * block_size + offset;
     fseek(file, offs, SEEK_SET);
@@ -500,15 +486,12 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 long offs = pos - block_size * block_number;
                 long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                 //!!!printf("Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, inode->di_addr[block_number], n, offs);
-                char message[500];
+                /*char message[500];
                 sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, inode->di_addr[block_number], n, offs);
-                //WriteToLog(message);
+                WriteToLog(message);*/
                 if(WriteBlock(inode->di_addr[block_number], buf + bytes_wrote, offs, n) < 0)
                 {
                     //WriteToLog("ERROR2");
-                    char message[500];
-                    sprintf(message, "bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, inode->di_addr[block_number], n, offs);
-                    //WriteToLog(message);
                     return -1;
                 }
                 bytes_wrote+=n;
@@ -526,7 +509,6 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 return -1;
         }
         long index0 = inode->di_addr[10]; //индекс блока с прямыми адресами (адресами блоков с данными)
-        //pos+=count0*block_size;
         block_number = pos / block_size;
         long count0 = block_number - 10;
         //!!!printf("BLOCK_NUMBER = %ld\n", block_number);
@@ -540,7 +522,6 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 ReadBlock(index0, &index1, count0 * sizeof(long), sizeof(long));
                 if(index1 < 0)
                     return -1;
-                //!!!printf("!@@index1 = %ld, count0 * sizeof(long) = %ld\n", index1, count0 * sizeof(long));
             }
             else
             {
@@ -559,9 +540,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 long offs = pos - block_size * block_number;
                 long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                 //!!!printf("!Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index1, n, offs);
-                char message[500];
+                /*char message[500];
                 sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index1, n, offs);
-                //WriteToLog(message);
+                WriteToLog(message);*/
                 if(WriteBlock(index1, buf + bytes_wrote, offs, n) < 0)
                     return -1;
                 bytes_wrote+=n;
@@ -605,9 +586,6 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
             }
             long count1 = (block_number-10-addr_in_block) - count0 * addr_in_block;
 
-            //!!!printf("!index1 = %ld \n", index1);
-
-
             while(count1 < addr_in_block && bytes_wrote < size)
             {
                 long index2; //индекс блока с данными
@@ -637,9 +615,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                     long offs = pos - block_size * block_number;
                     long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                     //!!!printf("!!Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index2, n, offs);
-                    char message[500];
+                    /*char message[500];
                     sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index2, n, offs);
-                    //WriteToLog(message);
+                    WriteToLog(message);*/
                     if(WriteBlock(index2, buf + bytes_wrote, offs, n) < 0)
                         return -1;
                     bytes_wrote+=n;
@@ -684,9 +662,6 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
             }
             //!!!printf("IND1 = %ld{\n", index1);
             long count1 = (block_number-10-addr_in_block-addr_in_block*addr_in_block)/addr_in_block - count0 * addr_in_block;
-
-            ////!!!printf("!index1 = %ld \n", index1);
-
 
             while(count1 < addr_in_block && bytes_wrote < size)
             {
@@ -735,9 +710,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                         long offs = pos - block_size * block_number;
                         long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                         //!!!printf("!!Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index3, n, offs);
-                        char message[500];
+                        /*char message[500];
                         sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index3, n, offs);
-                        //WriteToLog(message);
+                        WriteToLog(message);*/
                         if(WriteBlock(index3, buf + bytes_wrote, offs, n) < 0)
                             return -1;
                         bytes_wrote+=n;
@@ -755,7 +730,6 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
         }
     }
     inode->di_size = inode->di_size > offset + size ? inode->di_size : offset + size ;
-    //!!!printf("inode->di_size = %ld\n",inode->di_size);
     inode->di_atime = time(NULL);
     inode->di_mtime = time(NULL);
     return 0;
@@ -786,9 +760,9 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             if(pos + n > inode->di_size)
                 n = inode->di_size - pos;
             ////!!!printf("Reading: pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, inode->di_addr[block_number], n, offs);
-            char message[500];
+            /*char message[500];
             sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, inode->di_addr[block_number], n, offs);
-            //WriteToLog(message);
+            WriteToLog(message);*/
             if(ReadBlock(inode->di_addr[block_number], buf + bytes_read, offs, n) < 0)
             {
                 //WriteToLog("ERR2");
@@ -831,9 +805,9 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             if(pos + n > inode->di_size)
                 n = inode->di_size - pos;
             ////!!!printf("Reading: !pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index1, n, offs);
-            char message[500];
+            /*char message[500];
             sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, index1, n, offs);
-            //WriteToLog(message);
+            WriteToLog(message);*/
             if(ReadBlock(index1, buf + bytes_read, offs, n) < 0)
                 return -1;
             bytes_read+=n;
@@ -892,9 +866,9 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
                 if(pos + n > inode->di_size)
                     n = inode->di_size - pos;
                 ////!!!printf("Reading: !!pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index2, n, offs);
-                char message[500];
+                /*char message[500];
                 sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, index2, n, offs);
-                //WriteToLog(message);
+                WriteToLog(message);*/
                 if(ReadBlock(index2, buf + bytes_read, offs, n) < 0)
                     return -1;
                 bytes_read+=n;
@@ -914,21 +888,16 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
         long index0 = inode->di_addr[12]; //индекс блока с двойными непрямыми адресами (адресами блоков с одинарными непрямыми адресами)
         block_number = pos / block_size;
         long count0 = (block_number-10-addr_in_block-addr_in_block*addr_in_block)/addr_in_block/addr_in_block;
-        //!!!printf("index0 = %ld, count0 = %ld\n", index0, count0);
-
 
         while(count0 < addr_in_block && bytes_read < size && pos < inode->di_size)
         {
             long index1; //индекс блока с одинарными непрямыми адресами (адресами блоков с прямыми адресами)
-            //!!!printf("%ld < %ld\n", 10 * block_size + addr_in_block * block_size + addr_in_block * addr_in_block * block_size + count0 * block_size * addr_in_block * addr_in_block, inode->di_size);
-
 
             if(10 * block_size + addr_in_block * block_size + addr_in_block * addr_in_block * block_size + count0 * block_size * addr_in_block * addr_in_block < inode->di_size)
             {
                 ReadBlock(index0, &index1, count0 * sizeof(long), sizeof(long));
                 if(index1 < 0)
                     return -1;
-                //!!!printf("!!!!!!!!\n");
             }
             else
             {
@@ -936,7 +905,6 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             }
             long count1 = (block_number-10-addr_in_block-addr_in_block*addr_in_block)/addr_in_block - count0 * addr_in_block;
 
-            //!!!printf("block_number = %ld\n", block_number);
             while(count1 < addr_in_block && bytes_read < size && pos < inode->di_size)
             {
                 long index2; //индекс блока с прямыми адресами (адресами блоков с данными)
@@ -973,9 +941,9 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
                     if(pos + n > inode->di_size)
                         n = inode->di_size - pos;
                     ////!!!printf("Reading: !!!pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index3, n, offs);
-                    char message[500];
+                    /*char message[500];
                     sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, index3, n, offs);
-                    //WriteToLog(message);
+                    WriteToLog(message);*/
                     if(ReadBlock(index3, buf + bytes_read, offs, n) < 0)
                         return -1;
                     bytes_read+=n;
@@ -1019,10 +987,8 @@ long TruncFile(struct dinode *inode, long offset)
             //!!!printf("Removing: pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, inode->di_addr[block_number], n, offs);
             if(offs == 0)
             {
-                //!!!printf ("FREE BLOCK0 %ld", inode->di_addr[block_number]);
                 if(FreeBlockIndex(inode->di_addr[block_number]) < 0)
                     return -1;
-                //!!!//!!!printf (" SUCCESS\n");
                 inode->di_addr[block_number] = -1;
             }
             bytes_removed+=n;
@@ -1062,10 +1028,8 @@ long TruncFile(struct dinode *inode, long offset)
                 //!!!printf("!Removing: pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index1, n, offs);
                 if(offs == 0)
                 {
-                    //!!!printf ("!!FREE BLOCK1 %ld", index1);
                     if(FreeBlockIndex(index1) < 0)
                         return -1;
-                    //!!!printf (" !!SUCCESS\n");
                 }
                 else
                     free_block0 = 0;
@@ -1076,10 +1040,8 @@ long TruncFile(struct dinode *inode, long offset)
             }
             if(free_block0)
             {
-                //!!!printf ("!FREE BLOCK0 %ld", index0);
                 if(FreeBlockIndex(index0) < 0)
                     return -1;
-                //!!!printf (" !SUCCESS\n"); // index0);
                 inode->di_addr[10] = -1;
             }
         }
@@ -1137,10 +1099,8 @@ long TruncFile(struct dinode *inode, long offset)
                 //!!!printf("!!Removing: pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index2, n, offs);
                 if(offs == 0)
                 {
-                    printf ("!!FREE BLOCK2 = %ld, count1 = %ld ", index2, count1);
                     if(FreeBlockIndex(index2) < 0)
                         return -1;
-                    printf (" !!SUCCESS\n"); // index2);
                 }
                 else
                 {
@@ -1154,19 +1114,15 @@ long TruncFile(struct dinode *inode, long offset)
             }
             if(free_block1)
             {
-                printf ("!!FREE BLOCK1 %ld", index1);
                 if(FreeBlockIndex(index1) < 0)
                     return -1;
-                printf (" !!SUCCESS\n"); // index1);
             }
             count0++;
         }
         if(free_block0)
         {
-            printf ("!!FREE BLOCK0 %ld", index0);
             if(FreeBlockIndex(index0) < 0)
                 return -1;
-            printf (" !!SUCCESS\n"); // index0);
             inode->di_addr[11] = -1;
         }
     }
@@ -1218,7 +1174,7 @@ long TruncFile(struct dinode *inode, long offset)
                 long count2 = (block_number-10-addr_in_block-addr_in_block*addr_in_block) - count0 * addr_in_block * addr_in_block - count1 * addr_in_block;
                 char free_block2 = count2 == 0? 1 : 0;
                 free_block1*=free_block2;
-                printf("COUNT0 = %ld, COUNT2 = %ld, pos = %ld\n", count0, count2, pos);
+                //printf("COUNT0 = %ld, COUNT2 = %ld, pos = %ld\n", count0, count2, pos);
                 while(count2 < addr_in_block && bytes_removed < size)
                 {
 
@@ -1242,10 +1198,8 @@ long TruncFile(struct dinode *inode, long offset)
                     //!!!printf("!!!Removing: pos = %ld, block = %ld, n = %ld, offs = %ld, bytes_removed = %ld\n", pos, index3, n, offs, bytes_removed);
                     if(offs == 0)
                     {
-                        printf ("!!!FREE BLOCK3 %ld", index3);
                         if(FreeBlockIndex(index3) < 0)
                             return -1;
-                        printf (" !!!SUCCESS\n"); // index3);
                     }
                     else
                     {
@@ -1261,39 +1215,26 @@ long TruncFile(struct dinode *inode, long offset)
                 count1++;
                 if(free_block2)
                 {
-                    printf ("!!!FREE BLOCK2 %ld", index2);
                     if(FreeBlockIndex(index2) < 0)
                         return -1;
-                    printf (" !!!SUCCESS\n"); // index2);
                 }
-                else
-                    printf ("!!!NOT FREE BLOCK2 %ld\n", index2);
             }
             free_block0*=free_block1;
             count0++;
             if(free_block1)
             {
-                printf ("!!!FREE BLOCK1 %ld", index1);
                 if(FreeBlockIndex(index1) < 0)
                     return -1;
-                printf (" !!!SUCCESS\n"); // index1);
             }
-            else
-                printf ("!!!NOT FREE BLOCK1 %ld\n", index1);
         }
         if(free_block0)
         {
-            printf ("!!!FREE BLOCK0 %ld", index0);
             if(FreeBlockIndex(index0) < 0)
                 return -1;
-            printf (" !!!SUCCESS\n"); // index0);
             inode->di_addr[12] = -1;
         }
-        else
-            printf ("!!!NOT FREE BLOCK0 %ld\n", index0);
     }
     inode->di_size = inode->di_size - bytes_removed;
-    //!!!printf("inode->di_size = %ld\n",inode->di_size);
     inode->di_atime = time(NULL);
     inode->di_mtime = time(NULL);
     return 0;

@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "MOUNTING FILE SYSTEM"
 ./myfs fs
-directory="fs/teeeeest"
+directory="fs/test"
 echo "Making directory $directory"
 mkdir $directory
 sleep 1
@@ -32,7 +32,6 @@ echo "MOUNTING FILE SYSTEM"
 ./myfs fs
 echo "Checking files:"
 i=0
-sleep 1
 while [ $i -lt 10 ]
 do
   #sleep 1

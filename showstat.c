@@ -37,7 +37,6 @@ void PrintDir(const char *path)
             strcpy(newpath, path);
             if(strcmp(path, "/") != 0) strcat(newpath, "/");
             strcat(newpath, items[i].d_name);
-            printf("newpath = %s\n", newpath);
             PrintDir(newpath);
         }
     }
@@ -53,8 +52,6 @@ int main(int argc, char *argv[])
     for(i = 0; i < 100; i++)
         printf("index = %ld\n", GetInodeIndexByPath("/Безымянная папка/FUSE.htm"));*/
 
-    PrintFileSystemInfo();
     PrintDir("/");
-
-    //fclose(file);
+    PrintFileSystemInfo();
 }

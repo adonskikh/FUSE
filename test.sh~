@@ -17,7 +17,7 @@ fi
 i=0
 while [ $i -lt 10 ]
 do
-  sleep 1
+  #sleep 1
   addr="$directory/file$i.htm"
   touch $addr
   cp FUSE.htm $addr
@@ -32,7 +32,6 @@ echo "MOUNTING FILE SYSTEM"
 ./myfs fs
 echo "Checking files:"
 i=0
-sleep 1
 while [ $i -lt 10 ]
 do
   #sleep 1

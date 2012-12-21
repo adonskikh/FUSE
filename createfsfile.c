@@ -76,7 +76,6 @@ long CreateRoot()
 {
     struct dinode n;
     long index = GetNewInodeIndex();
-    //printf("index = %ld\n", index);
     if(index < 0)
     {
         /*char message[50];
@@ -133,15 +132,13 @@ void PrintDir(const char *path)
 {
     long i;
     long index = GetInodeIndexByPath(path);
-    printf("index = %ld\n", index);
     struct dinode n = ReadInode(index);
     if(n.di_size < 0)
         return;
-    //TruncFile(&n, 268*0);
     int count = n.di_size / sizeof(struct dirent);
     struct dirent items[count];
     printf("---------------------------------------------------\n");
-    printf("[%s]: size = %ld, index = %ld, links = %d\n", path, n.di_size, index, n.di_nlink);
+    printf("[%s: size = %ld, index = %ld, links = %d]\n", path, n.di_size, index, n.di_nlink);
 
     ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count)*sizeof(struct dirent));
     for(i = 0; i<count; i++)
@@ -170,50 +167,15 @@ int main(int argc, char *argv[])
     /*struct dinode n = ReadInode(0);
     struct dirent items[n.di_size/sizeof(dirent)];
     ReadFile(n, &items, sizeof(struct dirent), n.di_size - sizeof(dirent));*/
-    long k;
-    /*for(k = 6; k < 10; k++)
+    /*long k;
+    for(k = 6; k < 10; k++)
     {
         char path[50];
         sprintf(path, "/test%ld", k);
         CreateDirectory(path, S_IFDIR | 0777);
     }*/
+
     Load(fsfilename);
     PrintDir("/");
-    PrintDir("/test");
-    PrintDir("/test/test1");
-    PrintDir("/test/test1/test2");
-    PrintDir("/Безымянная папка");
-    PrintDir("/Безымянная папка 2");
-
     PrintFileSystemInfo();
-
-
-
-    //RemoveByPath("/test");
-    long index = GetInodeIndexByPath("/test/testf");
-    printf("index = %ld\n", index);
-    struct dinode n = ReadInode(index);
-    char message[50];
-    /*strcpy(message, "Hello world!");
-    WriteFile(&n, message, 0, strlen(message));*/
-    strcpy(message, "aaaaaaaaaaaaaaaaaaa");
-    ReadFile(&n, message, 0, strlen(message));
-    printf("MESSAGE = %s\n", message);
-    WriteInode(index, n);
-    /*printf("RENAME STATUS = %ld\n", Rename("/test/test1/testf", "/test/test1/test2/testf"));
-    printf("RENAME STATUS = %ld\n", Rename("/test/test1/testf1", "/test/test1/test2/testf1"));*/
-
-    //Create();
-    Load(fsfilename);
-    PrintFileSystemInfo();
-
-
-    PrintDir("/");
-    PrintDir("/test");
-    PrintDir("/test/test1");
-    PrintDir("/test/test1/test2");
-
-    Load(fsfilename);
-    PrintFileSystemInfo();
-    //fclose(file);
 }
