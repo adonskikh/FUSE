@@ -155,10 +155,10 @@ void PrintDir(const char *path)
 int main(int argc, char *argv[])
 {
     fsfilename = FILE_PATH;
-    /*Create();
+    Create();
     Load(fsfilename);
     CreateRoot();
-    CreateDirectory("/test", S_IFDIR | 0777);
+    /*CreateDirectory("/test", S_IFDIR | 0777);
     CreateDirectory("/test/test1", S_IFDIR | 0777);
     CreateFile("/test/testf", S_IFREG | 0777);
     //CreateFile("/test/test1/testf", S_IFREG | 0777);
@@ -215,5 +215,5 @@ int main(int argc, char *argv[])
 
     Load(fsfilename);
     PrintFileSystemInfo();
-    fclose(file);
+    //fclose(file);
 }

@@ -26,12 +26,12 @@ long block_size;
 
 long param_count = 5;
 
-FILE *file;
+//FILE *file;
 
 
 void WriteToLog(const char *str)
 {
-    /*FILE *output;
+    FILE *output;
 
     if((output=fopen(LOG_PATH, "a+"))==0)
     {
@@ -39,196 +39,196 @@ void WriteToLog(const char *str)
         exit(-1);
     }
     fprintf(output, "%s\n", str);
-    //fclose(output);*/
+    fclose(output);
 }
 
 long ReadFreeInodesCount()
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long result;
     fseek(file, 0, SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Read free inodes count: %ld", result);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
 long WriteFreeInodesCount(long value)
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */fseek(file, 0, SEEK_SET);
+    fseek(file, 0, SEEK_SET);
     fwrite(&value, sizeof(value), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Wrote free inodes count: %ld", value);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return 0;
 }
 
 long ReadMaxInodesCount()
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long result;
     fseek(file, sizeof(long), SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Read max inodes count: %ld", result);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
 long WriteMaxInodesCount(long value)
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */fseek(file, sizeof(long), SEEK_SET);
+    fseek(file, sizeof(long), SEEK_SET);
     fwrite(&value, sizeof(value), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Wrote max inodes count: %ld", value);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return 0;
 }
 
 long ReadFreeBlocksCount()
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long result;
     fseek(file, 2*sizeof(long), SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Read free blocks count: %ld", result);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
 long WriteFreeBlocksCount(long value)
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */fseek(file, 2*sizeof(long), SEEK_SET);
+    fseek(file, 2*sizeof(long), SEEK_SET);
     fwrite(&value, sizeof(value), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Wrote free blocks count: %ld", value);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return 0;
 }
 
 long ReadMaxBlocksCount()
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long result;
     fseek(file, 3*sizeof(long), SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Read max blocks count: %ld", result);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
 long WriteMaxBlocksCount(long value)
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */fseek(file, 3*sizeof(long), SEEK_SET);
+    fseek(file, 3*sizeof(long), SEEK_SET);
     fwrite(&value, sizeof(value), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Wrote max blocks count: %ld", value);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return 0;
 }
 
 long ReadBlockSize()
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long result;
     fseek(file, 4*sizeof(long), SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Read block size: %ld", result);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
 long WriteBlockSize(long value)
 {
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */fseek(file, 4*sizeof(long), SEEK_SET);
+    fseek(file, 4*sizeof(long), SEEK_SET);
     fwrite(&value, sizeof(value), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Wrote block size: %ld", value);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return 0;
 }
 
@@ -238,7 +238,7 @@ long GetNewInodeIndex()
 
     if(count == 0)
         return -1;
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
@@ -247,17 +247,17 @@ long GetNewInodeIndex()
 
     ////!!!printf("offset = %ld\n", offset);
     ////!!!printf("offset = %ld\n", INODES_AREA_SIZE);
-    */
+
     long result;
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + (count - 1) * sizeof(long);
     fseek(file, offset, SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     WriteFreeInodesCount(--count);
     /*char buf[50];
     sprintf(buf, "Got new inode index: %ld", result);
     printf("Got new inode index: %ld\n", result);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
@@ -267,22 +267,22 @@ long FreeInodeIndex(long index)
         return -1;
     long count = ReadFreeInodesCount();
 
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + count * sizeof(long);
     fseek(file, offset, SEEK_SET);
     fwrite(&index, sizeof(index), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Inode was freed: %ld", index);
     printf("Inode was freed: %ld\n", index);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     WriteFreeInodesCount(++count);
     return 0;
 }
@@ -293,7 +293,7 @@ long GetNewBlockIndex()
 
     if(count == 0)
         return -1;
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
@@ -301,17 +301,17 @@ long GetNewBlockIndex()
     }
     ////!!!printf("offset = %ld\n", offset);
     ////!!!printf("offset = %ld\n", INODES_AREA_SIZE);
-    */
+
     long result;
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + max_inodes_count * sizeof(long) + (count - 1) * sizeof(long);
     fseek(file, offset, SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     WriteFreeBlocksCount(--count);
     /*char buf[50];
     sprintf(buf, "Got new block index: %ld", result);
     printf("Got new block index: %ld\n", result);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
@@ -321,23 +321,23 @@ long FreeBlockIndex(long index)
         return -1;
     long count = ReadFreeBlocksCount();
 
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long offset = param_count * sizeof(long) + max_inodes_count * sizeof(struct dinode) + max_inodes_count * sizeof(long) + count * sizeof(long);
     fseek(file, offset, SEEK_SET);
     fwrite(&index, sizeof(index), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     WriteFreeBlocksCount(++count);
     /*char buf[50];
     sprintf(buf, "Block was freed: %ld", index);
     printf("Block was freed: %ld\n", index);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return 0;
 }
 
@@ -348,20 +348,20 @@ struct dinode ReadInode(long index)
     result.di_gen = -1;
     if(index < 0 || index >= max_inodes_count)
         return result;
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return result;
     }
-    */
+
     long offset = param_count * sizeof(long) + index * sizeof(result);
     fseek(file, offset, SEEK_SET);
     fread(&result, sizeof(result), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Read inode: %ld", index);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return result;
 }
 
@@ -370,20 +370,20 @@ long WriteInode(long index, struct dinode value)
     if(index < 0 || index >= max_inodes_count)
         return -1;
 
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
-    */
+
     long offset = param_count * sizeof(long) + index * sizeof(value);
     fseek(file, offset, SEEK_SET);
     fwrite(&value, sizeof(value), 1, file);
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buf[50];
     sprintf(buf, "Wrote inode: %ld", index);
-    WriteToLog(buf);*/
+    //WriteToLog(buf);*/
     return 0;
 }
 
@@ -393,22 +393,22 @@ long ReadBlock(long index, void *buf, long offset, long size)
     if(index < 0 || index >= max_blocks_count || offset + size > block_size)
         return -1;
 
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
 
-    */
+
     long offs = (param_count + max_blocks_count + max_inodes_count) * sizeof(long) + max_inodes_count * sizeof(struct dinode) + index * block_size + offset;
     fseek(file, offs, SEEK_SET);
     fread(buf, size, 1, file);
 
-    fflush(file);
+    fclose(file);//fflush(file);
     /*char buff[50];
     sprintf(buff, "Read %ld bytes from block %ld; offset = %ld", size, index, offset);
-    WriteToLog(buff);*/
+    //WriteToLog(buff);*/
     return 0;
 }
 
@@ -418,47 +418,44 @@ long WriteBlock(long index, void *buf, long offset, long size)
     if(buf == NULL || index < 0 || index >= max_blocks_count || offset + size > block_size)
         return -1;
 
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(fsfilename,"r+b"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
     }
-    */
+
     long offs = (param_count + max_blocks_count + max_inodes_count) * sizeof(long) + max_inodes_count * sizeof(struct dinode) + index * block_size + offset;
     fseek(file, offs, SEEK_SET);
     fwrite(buf, size, 1, file);
     /*char buff[50];
     sprintf(buff, "Wrote %ld bytes to block %ld; offset = %ld", size, index, offset);
-    WriteToLog(buff);*/
-    fflush(file);
+    //WriteToLog(buff);*/
+    fclose(file);//fflush(file);
     return 0;
 }
 
 long Load(char *filename)
 {
-    //long i;
-    if((file=fopen(filename,"r+b"))==0)
-    {
-        //!!!printf("Can't open input file.\n");
-        return -1;
-    }
-    /*FILE *file;
+    FILE *file;
     if((file=fopen(filename,"rb"))==0)
     {
         //!!!printf("Can't open input file.\n");
         return -1;
-    }*/
+    }
 
-     fread(&free_inodes_count, sizeof(free_inodes_count), 1, file);
-     fread(&max_inodes_count, sizeof(max_inodes_count), 1, file);
+    fsfilename = filename;
 
-     fread(&free_blocks_count, sizeof(free_blocks_count), 1, file);
-     fread(&max_blocks_count, sizeof(max_blocks_count), 1, file);
-     fread(&block_size, sizeof(block_size), 1, file);
 
-     //fseek(file, 2*sizeof(long) + max_inodes_count * sizeof(struct dinode) + max_inodes_count * sizeof(long), SEEK_SET);
-     /*for(i = 0; i < max_inodes_count; i++)
+    fread(&free_inodes_count, sizeof(free_inodes_count), 1, file);
+    fread(&max_inodes_count, sizeof(max_inodes_count), 1, file);
+
+    fread(&free_blocks_count, sizeof(free_blocks_count), 1, file);
+    fread(&max_blocks_count, sizeof(max_blocks_count), 1, file);
+    fread(&block_size, sizeof(block_size), 1, file);
+
+    //fseek(file, 2*sizeof(long) + max_inodes_count * sizeof(struct dinode) + max_inodes_count * sizeof(long), SEEK_SET);
+    /*for(i = 0; i < max_inodes_count; i++)
      {
          struct dinode node;
          fread(&node, sizeof(node), 1, input);
@@ -471,8 +468,8 @@ long Load(char *filename)
          //!!!printf("%ld\n", n);
      }*/
 
-     fflush(file);
-     return 0;
+    fclose(file);//fflush(file);
+    return 0;
 }
 
 long WriteFile(struct dinode *inode, void *buf, long offset, long size)
@@ -494,7 +491,7 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 inode->di_addr[block_number] = GetNewBlockIndex();
                 if(inode->di_addr[block_number] < 0)
                 {
-                    WriteToLog("ERROR1");
+                    //WriteToLog("ERROR1");
                     return -1;
                 }
             }
@@ -503,12 +500,15 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 long offs = pos - block_size * block_number;
                 long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                 //!!!printf("Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, inode->di_addr[block_number], n, offs);
+                char message[500];
+                sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, inode->di_addr[block_number], n, offs);
+                //WriteToLog(message);
                 if(WriteBlock(inode->di_addr[block_number], buf + bytes_wrote, offs, n) < 0)
                 {
-                    WriteToLog("ERROR2");
+                    //WriteToLog("ERROR2");
                     char message[500];
                     sprintf(message, "bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, inode->di_addr[block_number], n, offs);
-                    WriteToLog(message);
+                    //WriteToLog(message);
                     return -1;
                 }
                 bytes_wrote+=n;
@@ -559,6 +559,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                 long offs = pos - block_size * block_number;
                 long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                 //!!!printf("!Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index1, n, offs);
+                char message[500];
+                sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index1, n, offs);
+                //WriteToLog(message);
                 if(WriteBlock(index1, buf + bytes_wrote, offs, n) < 0)
                     return -1;
                 bytes_wrote+=n;
@@ -634,6 +637,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                     long offs = pos - block_size * block_number;
                     long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                     //!!!printf("!!Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index2, n, offs);
+                    char message[500];
+                    sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index2, n, offs);
+                    //WriteToLog(message);
                     if(WriteBlock(index2, buf + bytes_wrote, offs, n) < 0)
                         return -1;
                     bytes_wrote+=n;
@@ -729,6 +735,9 @@ long WriteFile(struct dinode *inode, void *buf, long offset, long size)
                         long offs = pos - block_size * block_number;
                         long n = (size - bytes_wrote) < block_size - offs ? (size - bytes_wrote) : block_size - offs;
                         //!!!printf("!!Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index3, n, offs);
+                        char message[500];
+                        sprintf(message, "Writing: bytes_wrote = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_wrote, pos, index3, n, offs);
+                        //WriteToLog(message);
                         if(WriteBlock(index3, buf + bytes_wrote, offs, n) < 0)
                             return -1;
                         bytes_wrote+=n;
@@ -768,7 +777,7 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
         {
             if(inode->di_addr[block_number] < 0)
             {
-                WriteToLog("ERR1");
+                //WriteToLog("ERR1");
                 return -1;
             }
             long offs = pos - block_number * block_size;
@@ -777,9 +786,12 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             if(pos + n > inode->di_size)
                 n = inode->di_size - pos;
             ////!!!printf("Reading: pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, inode->di_addr[block_number], n, offs);
+            char message[500];
+            sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, inode->di_addr[block_number], n, offs);
+            //WriteToLog(message);
             if(ReadBlock(inode->di_addr[block_number], buf + bytes_read, offs, n) < 0)
             {
-                WriteToLog("ERR2");
+                //WriteToLog("ERR2");
                 return -1;
             }
             bytes_read+=n;
@@ -819,6 +831,9 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
             if(pos + n > inode->di_size)
                 n = inode->di_size - pos;
             ////!!!printf("Reading: !pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index1, n, offs);
+            char message[500];
+            sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, index1, n, offs);
+            //WriteToLog(message);
             if(ReadBlock(index1, buf + bytes_read, offs, n) < 0)
                 return -1;
             bytes_read+=n;
@@ -877,6 +892,9 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
                 if(pos + n > inode->di_size)
                     n = inode->di_size - pos;
                 ////!!!printf("Reading: !!pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index2, n, offs);
+                char message[500];
+                sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, index2, n, offs);
+                //WriteToLog(message);
                 if(ReadBlock(index2, buf + bytes_read, offs, n) < 0)
                     return -1;
                 bytes_read+=n;
@@ -955,6 +973,9 @@ long ReadFile(struct dinode *inode, void *buf, long offset, long size)
                     if(pos + n > inode->di_size)
                         n = inode->di_size - pos;
                     ////!!!printf("Reading: !!!pos = %ld, block = %ld, n = %ld, offs = %ld\n", pos, index3, n, offs);
+                    char message[500];
+                    sprintf(message, "Reading: bytes_read = %ld, pos = %ld, block = %ld, n = %ld, offs = %ld\n", bytes_read, pos, index3, n, offs);
+                    //WriteToLog(message);
                     if(ReadBlock(index3, buf + bytes_read, offs, n) < 0)
                         return -1;
                     bytes_read+=n;
@@ -1282,6 +1303,51 @@ long GetInodeIndexByPath(const char *path)
 {
     int pos = 0;
     long index = -1;
+    long start = 0;
+    if(path[pos] == '/')
+    {
+        index = 0;
+        start = pos+1;
+        pos++;
+    }
+    else
+        return -ENOENT;
+    while(pos < strlen(path))
+    {
+        while(pos < strlen(path) && path[pos] != '/')
+            pos++;
+        char name[pos - start +1];
+        strncpy(name, path+start, pos - start);
+        name[pos - start] = '\0';
+        start = pos+1;
+        pos++;
+        struct dinode n = ReadInode(index);
+        if(n.di_size < 0)
+            return -ENOENT;
+        int count = n.di_size/sizeof(struct dirent);
+        struct dirent items[count];
+        if(ReadFile(&n, (void *)items, 0, n.di_size) < 0)
+            return -EIO;
+        int i;
+        index = -ENOENT;
+        for (i = 0; i<count; i++)
+        {
+            if(strcmp(items[i].d_name, name) == 0)
+            {
+                index = items[i].d_ino;
+                break;
+            }
+        }
+        if(index < 0)
+            return -ENOENT;
+    }
+    return index;
+}
+
+/*long GetInodeIndexByPath(const char *path)
+{
+    int pos = 0;
+    long index = -1;
     if(path[pos] == '/')
         index = 0;
 
@@ -1303,6 +1369,9 @@ long GetInodeIndexByPath(const char *path)
         for (i = 0; i<count; i++)
         {
             //printf ("Searching inode index by path: !%s! = !%s!\n",items[i].d_name, pch);
+            char message[500];
+            //sprintf(message, "Searching inode index by path: !%s! = !%s!\n",items[i].d_name, pch);
+            //WriteToLog(message);
             if(strcmp(items[i].d_name, pch) == 0)
             {
                 index = items[i].d_ino;
@@ -1312,7 +1381,7 @@ long GetInodeIndexByPath(const char *path)
         pch = strtok (NULL, "/");
     }
     return index;
-}
+}*/
 
 long RemoveHardLink(struct dinode *parent, struct dinode *child, long index)
 {
@@ -1370,8 +1439,8 @@ long CreateDirectory(const char *path, mode_t mode)
 {
     if(GetInodeIndexByPath(path) >= 0)
     {
-        /*WriteToLog("ALREADY EXIST");
-        WriteToLog(path);*/
+        /*//WriteToLog("ALREADY EXIST");
+        //WriteToLog(path);*/
         return -EEXIST; //файл с таким именем уже существует
     }
     int l = strlen(path);
@@ -1395,7 +1464,7 @@ long CreateDirectory(const char *path, mode_t mode)
     strncpy(name, path+l+1, strlen(path) - l-1);
     name[strlen(path) - l-1]='\0';
 
-    //WriteToLog(name);
+    ////WriteToLog(name);
 
     //!!!printf("parent = %s, name = %s\n", parent_path, name);
     //name = p+1;
@@ -1645,8 +1714,8 @@ long CreateFile(const char *path, mode_t mode)
 {
     if(GetInodeIndexByPath(path) >= 0)
     {
-        /*WriteToLog("ALREADY EXIST");
-        WriteToLog(path);*/
+        /*//WriteToLog("ALREADY EXIST");
+        //WriteToLog(path);*/
         return -EEXIST; //файл с таким именем уже существует
     }
     int l = strlen(path);

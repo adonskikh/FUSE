@@ -6,11 +6,6 @@
 #include <sys/types.h>
 #include "fsfileops.h"
 
-static const char *hello_str = "Hello World!\n";
-static const char *hello_path = "/hello";
-long last_index;
-struct dinode last_inode;
-
 
 /** Get file attributes.
  *
@@ -27,6 +22,9 @@ static int my_getattr(const char *path, struct stat *stbuf)
 
     long index = GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
+    char message[500];
+    sprintf(message, "GETATTR: index = %ld, path = %s, mode = %o, real size = %ld", index, path, n.di_mode, n.di_size);
+    WriteToLog(message);
     if(n.di_size < 0)
         return -ENOENT;
 
@@ -46,12 +44,30 @@ static int my_getattr(const char *path, struct stat *stbuf)
     return res;
 }
 
-/* указатель на эту функцию будет передан модулю ядра FUSE в качестве
-поля readdir структуры типа   fuse_operations  - эта функция определяет
-порядок чтения данных из директория*/
+/** Read directory
+ *
+ * This supersedes the old getdir() interface.  New applications
+ * should use this.
+ *
+ * The filesystem may choose between two modes of operation:
+ *
+ * 1) The readdir implementation ignores the offset parameter, and
+ * passes zero to the filler function's offset.  The filler
+ * function will not return '1' (unless an error happens), so the
+ * whole directory is read in a single readdir operation.  This
+ * works just like the old getdir() method.
+ *
+ * 2) The readdir implementation keeps track of the offsets of the
+ * directory entries.  It uses the offset parameter and always
+ * passes non-zero offset to the filler function.  When the buffer
+ * is full (or an error happens) the filler function will return
+ * '1'.
+ *
+ * Introduced in version 2.3
+ */
 static int my_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
 {
-    long index = GetInodeIndexByPath(path);
+    long index = fi->fh;//GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
     if(n.di_size < 0)
         return -ENOENT;
@@ -63,20 +79,20 @@ static int my_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
         long i;
         for(i = 0; i < n.di_size/sizeof(struct dirent); i++)
         {
-            struct stat stbuf;
-            struct dinode item = ReadInode(items[i].d_ino);
-            if(item.di_size < 0)
-                return -ENOENT;
-            stbuf.st_ino = index;     /* inode number */
-            stbuf.st_mode = item.di_mode;    /* protection */
-            stbuf.st_nlink = item.di_nlink;   /* number of hard links */
-            stbuf.st_uid = item.di_uid;     /* user ID of owner */
-            stbuf.st_gid = item.di_gid;     /* group ID of owner */
-            stbuf.st_size = item.di_size;    /* total size, in bytes */
-            stbuf.st_atime = item.di_atime;   /* time of last access */
-            stbuf.st_mtime = item.di_mtime;   /* time of last modification */
-            stbuf.st_ctime = item.di_ctime;   /* time of last status change */
-            filler(buf, items[i].d_name, &stbuf, 0); //TODO: stat вместо NULL
+//            struct stat stbuf;
+//            struct dinode item = ReadInode(items[i].d_ino);
+//            if(item.di_size < 0)
+//                return -ENOENT;
+//            stbuf.st_ino = index;     /* inode number */
+//            stbuf.st_mode = item.di_mode;    /* protection */
+//            stbuf.st_nlink = item.di_nlink;   /* number of hard links */
+//            stbuf.st_uid = item.di_uid;     /* user ID of owner */
+//            stbuf.st_gid = item.di_gid;     /* group ID of owner */
+//            stbuf.st_size = item.di_size;    /* total size, in bytes */
+//            stbuf.st_atime = item.di_atime;   /* time of last access */
+//            stbuf.st_mtime = item.di_mtime;   /* time of last modification */
+//            stbuf.st_ctime = item.di_ctime;   /* time of last status change */
+            filler(buf, items[i].d_name, /*&stbuf*/NULL, 0); //TODO: stat вместо NULL
         }
     }
     else
@@ -94,9 +110,6 @@ int my_mknod(const char *path, mode_t mode, dev_t dev)
 {
     if (S_ISREG(mode))
         return CreateFile(path, mode | S_IFREG);
-    else
-    if (S_ISFIFO(mode))
-        return CreateFile(path, mode | S_IFIFO);
 
     return -EINVAL;
 }
@@ -138,6 +151,7 @@ int my_opendir(const char *path, struct fuse_file_info *fi)
     struct dinode n = ReadInode(index);
     if(n.di_size < 0)
         return -ENOENT;
+    fi->fh = index;
 
     /*char message[50];
     sprintf(message, "opendir flags: %o", fi->flags);
@@ -191,20 +205,15 @@ int my_opendir(const char *path, struct fuse_file_info *fi)
 int my_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
     long index = fi->fh;//GetInodeIndexByPath(path);
-    struct dinode n;
-    if(last_index == index)
-    {
-        n = last_inode;
-    }
-    else
-        n = ReadInode(index);
-    /*char message[500];
-    sprintf(message, "read: index = %ld, path = %s, size = %ld, offset = %ld, real size = %o", index, path, size, (long)offset, n.di_size);
-    WriteToLog(message);*/
+    struct dinode n = ReadInode(index);
+    char message[500];
+    sprintf(message, "read: index = %ld, path = %s, size = %ld, offset = %ld, real size = %ld", index, path, size, (long)offset, n.di_size);
+    WriteToLog(message);
     if(n.di_size < 0)
         return -ENOENT;
     if(ReadFile(&n, buf, (long)offset, size) < 0)
         return -EIO;
+    WriteToLog("SUCCESS");
     return size;
 }
 
@@ -218,22 +227,15 @@ int my_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_
  */
 int my_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
-    long index = fi->fh;//GetInodeIndexByPath(path);
-    struct dinode n;
-    if(last_index == index)
-    {
-        n = last_inode;
-    }
-    else
-        n = ReadInode(index);
+    long index =  fi->fh;//GetInodeIndexByPath(path);
+    struct dinode n = ReadInode(index);
     if(n.di_size < 0)
         return -ENOENT;
-    /*char message[500];
+    char message[500];
     sprintf(message, "write: index = %ld, path = %s, size = %ld, offset = %ld, real size = %ld, fi->fh = %ld", index, path, size, (long)offset, n.di_size, fi->fh);
-    WriteToLog(message);*/
+    WriteToLog(message);
     if(WriteFile(&n, (void *)buf, (long)offset, size) < 0)
     {
-        WriteInode(index, n);
         return -EIO;
     }
     if(WriteInode(index, n) < 0)
@@ -303,15 +305,17 @@ int my_truncate(const char *path, off_t newsize)
 {
     long index = GetInodeIndexByPath(path);
     struct dinode n = ReadInode(index);
+    char message[500];
+    sprintf(message, "trunc: index = %ld, path = %s, offset = %ld, real size = %ld, fi->fh = %ld", index, path, (long)newsize, n.di_size);
+    WriteToLog(message);
     if(n.di_size < 0)
         return -ENOENT;
     if(TruncFile(&n, (long)newsize) < 0)
     {
-        WriteInode(index, n);
         return -EIO;
     }
-    if((long)newsize == 0)
-        return FreeInodeIndex(index);
+    /*if((long)newsize == 0)
+        return FreeInodeIndex(index);*/
     return(WriteInode(index, n));
 }
 
@@ -321,8 +325,10 @@ int main(int argc, char *argv[])
 {
     //Create();
     if(Load(FILE_PATH) < 0)
-        printf("AAAAAAAAAAAAAAAAAAAAAAAAAa\n");
-    last_index = -1;
+    {
+        printf("Cann't load file system.\n");
+        return -1;
+    }
     //WriteToFile();
     // начало заполнения полей структуры
     my_operations.getattr = my_getattr;
