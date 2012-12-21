@@ -2,9 +2,9 @@
 #include <string.h>
 long Create()
 {
-    FILE *file;
     long i;
 
+    FILE *file;
     if((file=fopen(fsfilename,"wb"))==0)
     {
         puts ("Can't open output file.");
@@ -79,9 +79,9 @@ long CreateRoot()
     //printf("index = %ld\n", index);
     if(index < 0)
     {
-        char message[50];
+        /*char message[50];
         sprintf(message, "Failed to create root");
-        WriteToLog(message);
+        WriteToLog(message);*/
         return -1;
     }
     n.di_mode = S_IFDIR | 0777;
@@ -114,32 +114,57 @@ long CreateRoot()
     }
     if(WriteFile(&n, items, 0, sizeof(items)) < 0)
     {
-        char message[50];
+        /*char message[50];
         sprintf(message, "Failed to create root");
-        WriteToLog(message);
+        WriteToLog(message);*/
         return -1;
     }
     if(WriteInode(index, n) < 0)
     {
-        char message[50];
+        /*char message[50];
         sprintf(message, "Failed to create root");
-        WriteToLog(message);
+        WriteToLog(message);*/
         return -1;
     }
     printf("Root was created\n");
 }
 
+void PrintDir(const char *path)
+{
+    long i;
+    long index = GetInodeIndexByPath(path);
+    printf("index = %ld\n", index);
+    struct dinode n = ReadInode(index);
+    if(n.di_size < 0)
+        return;
+    //TruncFile(&n, 268*0);
+    int count = n.di_size / sizeof(struct dirent);
+    struct dirent items[count];
+    printf("---------------------------------------------------\n");
+    printf("[%s]: size = %ld, index = %ld, links = %d\n", path, n.di_size, index, n.di_nlink);
+
+    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count)*sizeof(struct dirent));
+    for(i = 0; i<count; i++)
+    {
+        struct dinode item = ReadInode((items)[i].d_ino);
+        printf(" %s: inode = %ld, offs = %ld, mode = %o, size = %ld\n", (items)[i].d_name, (items)[i].d_ino, (items)[i].d_off, item.di_mode, item.di_size);
+    }
+    printf("---------------------------------------------------\n");
+}
+
 int main(int argc, char *argv[])
 {
     fsfilename = FILE_PATH;
-    Create();
+    /*Create();
     Load(fsfilename);
     CreateRoot();
     CreateDirectory("/test", S_IFDIR | 0777);
     CreateDirectory("/test/test1", S_IFDIR | 0777);
+    CreateFile("/test/testf", S_IFREG | 0777);
+    //CreateFile("/test/test1/testf", S_IFREG | 0777);
     CreateDirectory("/test/test1/test2", S_IFDIR | 0777);
-    CreateDirectory("/test3", S_IFDIR | 0777);
-    CreateFile("/test/test1/test2/test.txt", S_IFREG | 0777);
+    //CreateFile("/test/test1/test2/testf", S_IFREG | 0777);
+    /*CreateDirectory("/test3", S_IFDIR | 0777);
     /*CreateDirectory("/test4", S_IFDIR | 0777);
     CreateDirectory("/test5", S_IFDIR | 0777);*/
     /*struct dinode n = ReadInode(0);
@@ -152,168 +177,43 @@ int main(int argc, char *argv[])
         sprintf(path, "/test%ld", k);
         CreateDirectory(path, S_IFDIR | 0777);
     }*/
-    //CreateDirectory("/Безымянная папка", S_IFDIR | 0777);
-
     Load(fsfilename);
+    PrintDir("/");
+    PrintDir("/test");
+    PrintDir("/test/test1");
+    PrintDir("/test/test1/test2");
+    PrintDir("/Безымянная папка");
+    PrintDir("/Безымянная папка 2");
+
     PrintFileSystemInfo();
 
-    /*printf("new inode index = %ld\n", GetNewInodeIndex());
-    printf("new inode index = %ld\n", GetNewInodeIndex());
-    printf("new inode index = %ld\n", GetNewInodeIndex());
-    printf("new inode index = %ld\n", GetNewInodeIndex());
-    printf("new inode index = %ld\n", GetNewInodeIndex());
-
-    printf("new inode index = %ld\n", GetNewInodeIndex());
-    printf("new inode index = %ld\n", GetNewInodeIndex());*/
 
 
-    /*printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    FreeBlockIndex(5);
-
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("new block address = %ld\n", GetNewBlockIndex());
-    printf("inode = %ld\n", ReadInode(-1).di_gen);
-    printf("inode = %ld\n", ReadInode(0).di_gen);
-    printf("inode = %ld\n", ReadInode(1).di_gen);
-    struct dinode n = ReadInode(1);
-    n.di_gen = 999;
-    WriteInode(1, n);
-    printf("inode = %ld\n", ReadInode(1).di_gen);
-    printf("inode = %ld\n", ReadInode(2).di_gen);
-    printf("inode = %ld\n", ReadInode(3).di_gen);
-    printf("inode = %ld\n", ReadInode(4).di_gen);
-    printf("inode = %ld\n", ReadInode(5).di_gen);
-    printf("inode = %ld\n", ReadInode(6).di_gen);
-
-    long i;
-    char *arr1 = malloc(block_size);
-    for(i = 0; i < block_size; i++)
-    {
-        arr1[i] = 127;
-    }
-    //WriteToLog((arr1));
-    WriteBlock(1, arr1, 0, block_size);
-    free(arr1);
-    printf("qqqqqqqqqqqqqqqqqqqqq");
-    for(i = -1; i <= max_blocks_count; i++)
-    {
-        char *arr = malloc(block_size);
-
-        long j;
-        if(!(ReadBlock(i, arr, 0, block_size) < 0))
-        {
-            for(j = 0; j < block_size; j++)
-                printf("%u ", arr[j]);
-            printf("\n");
-        }
-        else
-            printf("NULL\n");
-        free(arr);
-    }*/
-    /*WriteFreeInodesCount(14);
-    printf("free_inodes_count = %ld\n", ReadFreeInodesCount());
-    WriteMaxInodesCount(15);
-    printf("max_inodes_count = %ld\n", ReadMaxInodesCount());
-    WriteMaxInodesCount(5);
-    printf("max_inodes_count = %ld\n", ReadMaxInodesCount());
-    WriteFreeBlocksCount(19);
-    printf("free_blocks_count = %ld\n", ReadFreeBlocksCount());
-    WriteMaxBlocksCount(20);
-    printf("max_blocks_count = %ld\n", ReadMaxBlocksCount());
-    WriteBlockSize(8);
-    printf("block_size = %ld\n", ReadBlockSize());
-    printf("\n\n");
-    Load();
-    PrintAll();*/
-
-    //(*items) = malloc(10 * sizeof(struct dirent));
-    long i;
-    struct dinode n = ReadInode(0);
-    //TruncFile(&n, 268*0);
-    int count = n.di_size / sizeof(struct dirent);
-    struct dirent *items;
-    items = malloc((count) * sizeof(struct dirent));
-    printf("n.size = %ld\n", n.di_size);
-    printf("index = %ld\n", GetInodeIndexByPath("/qwert"));
-
-    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count)*sizeof(struct dirent));
-    for(i = 0; i<count; i++)
-    {
-        printf("inode = %ld, name = %s, offs = %ld\n", (items)[i].d_ino, (items)[i].d_name, (items)[i].d_off);
-    }
-    free(items);
-
-    //RemoveByPath("/test.txt");
-    printf("RENAME STATUS = %ld\n", Rename("/test/test1/test2/test.txt", "/test/test1/test.txt"));
-
-
-    /*long k;
-    for(k=1;k<10;k++)
-    {
-        printf("createfile status = %ld\n", CreateDemoFile());
-    }
-    for(k=0;k<10;k++)
-    {
-        int count = 10;
-        struct dirent *items; items = malloc((count+1) * sizeof(struct dirent));
-        //(*items) = malloc(10 * sizeof(struct dirent));
-        long i;
-        struct dinode n = ReadInode(k);
-        printf("n.size = %ld\n", n.di_size);
-        printf("n.file = %ld\n", n.di_addr[0]);
-        ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count) * sizeof(struct dirent));
-        WriteFile(&n, (void *)items, 1*sizeof(struct dirent), (count) * sizeof(struct dirent));
-        printf("n.size = %ld\n", n.di_size);
-        ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count+1) * sizeof(struct dirent));
-        for(i = 0; i<count+1; i++)
-        {
-            printf("inode = %ld, name = %s\n", (items)[i].d_ino, (items)[i].d_name);
-        }
-        free(items);
-    }*/
+    //RemoveByPath("/test");
+    long index = GetInodeIndexByPath("/test/testf");
+    printf("index = %ld\n", index);
+    struct dinode n = ReadInode(index);
+    char message[50];
+    /*strcpy(message, "Hello world!");
+    WriteFile(&n, message, 0, strlen(message));*/
+    strcpy(message, "aaaaaaaaaaaaaaaaaaa");
+    ReadFile(&n, message, 0, strlen(message));
+    printf("MESSAGE = %s\n", message);
+    WriteInode(index, n);
+    /*printf("RENAME STATUS = %ld\n", Rename("/test/test1/testf", "/test/test1/test2/testf"));
+    printf("RENAME STATUS = %ld\n", Rename("/test/test1/testf1", "/test/test1/test2/testf1"));*/
 
     //Create();
     Load(fsfilename);
     PrintFileSystemInfo();
 
-    n = ReadInode(0);
-    //TruncFile(&n, 268*0);
-    count = n.di_size / sizeof(struct dirent);
-    items = malloc((count) * sizeof(struct dirent));
-    printf("n.size = %ld\n", n.di_size);
-    printf("index = %ld\n", GetInodeIndexByPath("/qwert"));
 
-    ReadFile(&n, (void *)items, 0*sizeof(struct dirent), (count)*sizeof(struct dirent));
-    for(i = 0; i<count; i++)
-    {
-        printf("inode = %ld, name = %s, offs = %ld\n", (items)[i].d_ino, (items)[i].d_name, (items)[i].d_off);
-    }
-    free(items);
+    PrintDir("/");
+    PrintDir("/test");
+    PrintDir("/test/test1");
+    PrintDir("/test/test1/test2");
 
     Load(fsfilename);
     PrintFileSystemInfo();
+    fclose(file);
 }
